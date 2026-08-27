@@ -1,0 +1,81 @@
+\section{Chapter 5 Research Gap Analysis}
+
+\subsection{5.1 Introduction}
+
+Cloud computing has transformed modern computing infrastructures by providing scalable, flexible, and cost-effective computing resources. As organizations increasingly migrate critical workloads to cloud platforms such as Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP), maintaining a secure cloud environment has become a significant challenge. Over the past decade, researchers and commercial vendors have proposed numerous techniques for cloud security assessment, including Cloud Security Posture Management (CSPM), Cloud-Native Application Protection Platforms (CNAPP), compliance monitoring tools, attack graph analysis, and artificial intelligence-based security solutions. Although these approaches have significantly improved cloud security visibility, several limitations remain unresolved. Existing solutions often focus on detecting individual security issues rather than understanding how multiple misconfigurations interact within complex cloud environments. Furthermore, many platforms rely heavily on static rule-based detection and provide limited contextual reasoning, making it difficult for security teams to prioritize remediation efforts effectively. This chapter analyzes the limitations identified in the literature and existing cloud security platforms and establishes the research gap addressed by the proposed CloudSentinel AI framework.
+
+\subsection{5.2 Analysis of Existing Research}
+
+The review of existing literature indicates that substantial progress has been made in automated cloud security assessment. Most research focuses on one or more of the following areas:
+
+\begin{itemize}
+\tightlist
+\item
+  Cloud misconfiguration detection\\
+\item
+  Compliance validation\\
+\item
+  Identity and Access Management (IAM) analysis\\
+\item
+  Infrastructure-as-Code (IaC) security\\
+\item
+  Attack graph generation\\
+\item
+  Vulnerability assessment\\
+\item
+  Cloud workload protection\\
+\item
+  Artificial Intelligence for cybersecurity
+\end{itemize}
+
+While these approaches have demonstrated considerable success in identifying security weaknesses, they generally address individual aspects of cloud security rather than providing an integrated, context-aware security analysis framework. For example, CSPM solutions effectively identify policy violations but provide limited insight into how multiple security findings collectively contribute to an organization's attack surface. Similarly, attack graph research models possible attack paths but often lacks real-time cloud configuration analysis and automated remediation support. AI-based security research has improved anomaly detection and security prediction; however, many models operate independently of cloud resource relationships and provide limited explainability for their decisions.
+
+\subsection{5.3 Identified Research Gaps}
+
+Based on the analysis of existing literature and commercial cloud security solutions, several research gaps have been identified.\\
+\textbf{Gap 1: Isolated Security Analysis}\\
+Most existing cloud security platforms evaluate cloud resources independently. Security findings are generated as separate alerts without considering the relationships among identities, storage resources, virtual machines, databases, networking components, and organizational policies. As a result, security analysts receive fragmented information that does not accurately represent the overall security posture of the cloud environment.\\
+\textbf{Gap 2: Limited Context-Aware Risk Assessment}\\
+Traditional risk assessment methods primarily rely on predefined severity levels assigned to individual security findings. These severity ratings often fail to consider organizational context, asset criticality, network exposure, identity relationships, business importance, and resource dependencies. Consequently, organizations may prioritize remediation based on static severity scores rather than actual exploitability.\\
+\textbf{Gap 3: Lack of Integrated Attack Path Analysis}\\
+Although attack graph research has advanced significantly, most commercial CSPM platforms continue to report isolated security findings instead of modeling complete attack paths. Modern cyberattacks typically exploit multiple interconnected weaknesses rather than a single vulnerability. Existing approaches provide limited support for identifying these multi-stage attack scenarios.\\
+\textbf{Gap 4: Limited Explainability of AI-Based Security Systems}\\
+Artificial Intelligence is increasingly used in cybersecurity applications; however, many AI models function as black-box systems that provide security predictions without explaining the reasoning behind their decisions. Security analysts require transparent and interpretable recommendations to support incident response, compliance reporting, and organizational decision-making.\\
+\textbf{Gap 5: Alert Fatigue}\\
+Enterprise cloud environments often generate thousands of security alerts daily. Existing security platforms provide limited prioritization mechanisms, forcing analysts to manually investigate numerous findings before identifying genuinely critical threats. This contributes to alert fatigue, delayed incident response, and reduced operational efficiency.\\
+\textbf{Gap 6: Limited Integration of Graph Intelligence and AI}\\
+Graph-based cloud security analysis and Artificial Intelligence have largely evolved as separate research domains. Existing solutions rarely integrate knowledge graphs, attack graph analysis, contextual reasoning, dynamic risk scoring, and Explainable AI within a unified cloud security framework.
+
+\subsection{5.4 Research Problem Statement}
+
+Current Cloud Security Posture Management (CSPM) and Cloud-Native Application Protection Platform (CNAPP) solutions successfully detect cloud misconfigurations and compliance violations but primarily rely on rule-based detection techniques that evaluate cloud resources independently. These approaches provide limited contextual understanding of cloud infrastructures, insufficient attack path analysis, and minimal explainability of identified security risks. As cloud environments continue to grow in scale and complexity, security analysts require intelligent security frameworks capable of understanding relationships among cloud resources, dynamically assessing contextual risks, identifying exploitable attack paths, and providing human-readable explanations for remediation decisions. Therefore, there is a need for an intelligent, context-aware cloud security framework that integrates graph-based cloud modeling, attack path generation, contextual risk assessment, and Explainable Artificial Intelligence to improve cloud security decision-making.
+
+\subsection{5.5 Proposed Solution}
+
+To address the identified research gaps, this research proposes CloudSentinel AI, a context-aware cloud security framework designed to enhance traditional Cloud Security Posture Management. The proposed framework integrates multiple analytical components into a unified architecture. Cloud resources are collected from the cloud environment and represented as a knowledge graph that captures relationships among identities, compute resources, storage services, networking components, and security configurations. This graph serves as the foundation for attack path generation and contextual risk assessment. Unlike traditional rule-based CSPM solutions, CloudSentinel AI evaluates the combined impact of multiple cloud misconfigurations rather than analyzing each issue independently. The framework generates dynamic risk scores based on asset relationships, attack feasibility, and organizational context. Additionally, an Explainable AI module produces natural language explanations describing identified risks, potential attack scenarios, and recommended remediation strategies. The proposed framework aims to reduce alert fatigue, improve remediation prioritization, and provide security analysts with a more comprehensive understanding of cloud security risks.
+
+\subsection{5.6 Expected Contributions}
+
+The proposed research is expected to contribute to the field of cloud security in several ways:
+
+\begin{itemize}
+\tightlist
+\item
+  Development of a context-aware cloud security assessment framework.\\
+\item
+  Integration of knowledge graph modeling for cloud infrastructure analysis.\\
+\item
+  Generation of attack paths based on cloud resource relationships.\\
+\item
+  Dynamic contextual risk scoring instead of static severity ratings.\\
+\item
+  Explainable AI-based security recommendations for analysts.\\
+\item
+  Improved prioritization of cloud security remediation activities.\\
+\item
+  Reduction of alert fatigue through intelligent correlation of security findings.
+\end{itemize}
+
+\subsection{5.7 Chapter Summary}
+
+This chapter identified the limitations of existing cloud security research and commercial security platforms. Although current CSPM and CNAPP solutions provide valuable capabilities for cloud security assessment, they continue to face challenges related to contextual reasoning, attack path generation, dynamic risk assessment, explainability, and intelligent prioritization. These identified research gaps justify the development of the proposed CloudSentinel AI framework. The next chapter presents the detailed system architecture, components, and methodology of the proposed solution, explaining how each module addresses the shortcomings identified in existing approaches.
