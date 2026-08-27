@@ -124,6 +124,220 @@ The study performs an extensive empirical analysis of configuration-related fail
 \textbf{Relevance to CloudSentinel AI}\\
 This research supports the motivation behind CloudSentinel AI by demonstrating that cloud misconfigurations remain a persistent organizational challenge requiring intelligent automated analysis.
 
-\subsubsection{4.2.1 Critical Analysis of Cloud Misconfiguration Research}
+\subsection{4.3 Research on Attack Graph Analysis in Cloud Security}
 
-The reviewed studies collectively demonstrate significant progress in detecting cloud misconfigurations through rule-based validation, anomaly detection, Infrastructure-as-Code analysis, and empirical studies of configuration management practices. These approaches have substantially improved organizations' ability to identify insecure cloud configurations and reduce operational security risks. However, several important research gaps remain. Most existing studies analyze isolated cloud resources or focus exclusively on individual cloud services such as IAM or Amazon S3. Few approaches model relationships among cloud assets or evaluate how multiple independent configuration errors may collectively enable complex attack scenarios. Furthermore, existing research provides limited support for contextual risk assessment, explainable security analysis, and intelligent prioritization of remediation activities. These limitations indicate the need for cloud security frameworks capable of integrating cloud asset relationships, attack graph generation, dynamic contextual risk scoring, and AI-assisted explanations---capabilities that form the foundation of the proposed CloudSentinel AI framework.
+Attack graph techniques have been widely studied as a method for modeling and analyzing the set of possible exploitation paths within networked and cloud environments. Unlike individual vulnerability assessments, attack graphs capture the relationships between assets, vulnerabilities, and attacker capabilities to provide a holistic view of the security posture.
+
+\emph{Paper 4: Attack Graph Generation and Analysis for Cloud Environments}\\
+\textbf{Research Objective}\\
+This study investigates the generation and analysis of attack graphs specifically adapted for cloud computing environments, addressing the unique challenges posed by dynamic resource provisioning, multi-tenancy, and elastic scaling.
+
+\textbf{Methodology}\\
+The authors propose a cloud-aware attack graph model that incorporates cloud-specific elements including virtual machine images, security groups, IAM roles, and network ACLs. The model extends traditional attack graph representations to capture cloud resource lifecycle dynamics and multi-tenant isolation boundaries.
+
+\textbf{Strengths}
+
+\begin{itemize}
+\tightlist
+\item
+  Specifically designed for cloud environments with cloud-native threat modeling.\\
+\item
+  Incorporates dynamic resource provisioning and de-provisioning into the graph model.\\
+\item
+  Demonstrates scalability to moderate-sized cloud deployments.\\
+\item
+  Provides automated graph generation from cloud configuration data.
+\end{itemize}
+
+\textbf{Limitations}
+
+\begin{itemize}
+\tightlist
+\item
+  Does not incorporate contextual risk scoring for prioritizing attack paths.\\
+\item
+  Limited integration with AI or machine learning for intelligent analysis.\\
+\item
+  Focuses primarily on technical attack vectors without business context.\\
+\item
+  Does not provide explainable outputs for security analysts.
+\end{itemize}
+
+\textbf{Relevance to CloudSentinel AI}\\
+CloudSentinel AI builds upon cloud-specific attack graph research by adding contextual risk assessment and AI-generated explanations, enabling analysts to understand not only what attack paths exist but also which paths pose the greatest organizational risk and why.
+
+\subsection{4.4 Research on Explainable AI in Cybersecurity}
+
+Explainable Artificial Intelligence has emerged as a critical research area in cybersecurity, driven by the need for transparent and interpretable security decisions. Security analysts require not only automated detection capabilities but also clear explanations that justify identified risks and support remediation decisions.
+
+\emph{Paper 5: Explainable Artificial Intelligence for Cybersecurity---A Systematic Mapping Study}\\
+\textbf{Research Objective}\\
+This systematic mapping study examines the current state of XAI applications across cybersecurity domains, identifying techniques, evaluation methods, and application areas where explainability has been successfully implemented.
+
+\textbf{Methodology}\\
+The authors conduct a systematic review of published research on XAI in cybersecurity, categorizing approaches by technique (feature attribution, rule extraction, attention mechanisms, counterfactual explanations), application domain (intrusion detection, malware analysis, vulnerability assessment), and evaluation methodology.
+
+\textbf{Strengths}
+
+\begin{itemize}
+\tightlist
+\item
+  Comprehensive mapping of XAI techniques applicable to security domains.\\
+\item
+  Identifies evaluation criteria for assessing explanation quality.\\
+\item
+  Highlights the gap between XAI research and practical security operations.\\
+\item
+  Provides a taxonomy of explainability approaches for different security tasks.
+\end{itemize}
+
+\textbf{Limitations}
+
+\begin{itemize}
+\tightlist
+\item
+  Covers broad cybersecurity domains without deep focus on cloud security.\\
+\item
+  Does not address LLM-based explanation generation approaches.\\
+\item
+  Limited discussion of cloud-specific explainability requirements.\\
+\item
+  Evaluation criteria may not fully translate to cloud security operations.
+\end{itemize}
+
+\textbf{Relevance to CloudSentinel AI}\\
+This study provides foundational understanding of XAI techniques that informs the design of the CloudSentinel AI explanation module. The framework applies LLM-based explanation generation as a specific XAI technique adapted for cloud security contexts.
+
+\subsection{4.5 Research on Large Language Models in Cloud Security}
+
+Large Language Models have recently demonstrated significant potential for cybersecurity applications, including vulnerability analysis, security log interpretation, incident response, and security policy generation. Their ability to synthesize technical information and generate human-readable outputs makes them promising tools for cloud security operations.
+
+\emph{Paper 6: Large Language Models for Cyber Security---A Systematic Literature Review}\\
+\textbf{Research Objective}\\
+This systematic literature review examines the emerging applications of LLMs across cybersecurity domains, analyzing how language models are being adapted and deployed for security tasks including vulnerability detection, threat analysis, and security report generation.
+
+\textbf{Methodology}\\
+The authors analyze published research on LLM applications in cybersecurity, categorizing studies by model architecture (GPT, BERT, LLaMA, and domain-specific variants), application area, evaluation methodology, and reported performance characteristics.
+
+\textbf{Strengths}
+
+\begin{itemize}
+\tightlist
+\item
+  Comprehensive overview of LLM applications across cybersecurity.\\
+\item
+  Identifies strengths and limitations of different LLM architectures for security tasks.\\
+\item
+  Highlights the potential for LLM-assisted security operations.\\
+\item
+  Discusses challenges including hallucination, latency, and domain adaptation.
+\end{itemize}
+
+\textbf{Limitations}
+
+\begin{itemize}
+\tightlist
+\item
+  Does not specifically address cloud security applications.\\
+\item
+  Limited discussion of integrating LLMs into broader security analysis pipelines.\\
+\item
+  Does not propose a specific framework for LLM-based security recommendations.\\
+\item
+  Evaluation metrics may not capture the quality of security-specific explanations.
+\end{itemize}
+
+\textbf{Relevance to CloudSentinel AI}\\
+CloudSentinel AI applies LLM capabilities specifically within cloud security contexts, integrating language model outputs into a structured analysis pipeline rather than using LLMs as standalone tools. The framework demonstrates how LLM-generated explanations can complement graph-based security analysis.
+
+\subsection{4.6 Research on Graph-Based Cloud Security Analysis}
+
+Graph-based approaches have gained increasing attention in cloud security research for their ability to model complex relationships among cloud resources. Knowledge graphs, in particular, provide structured representations that enable advanced querying and analysis of cloud infrastructure dependencies.
+
+\emph{Paper 7: Graph-Based Approaches for Cloud Security Analysis---A Survey}\\
+\textbf{Research Objective}\\
+This survey examines the application of graph-based techniques---including knowledge graphs, attack graphs, and resource dependency graphs---to cloud security analysis, identifying strengths, limitations, and future research directions.
+
+\textbf{Methodology}\\
+The authors review published research on graph-based cloud security, categorizing approaches by graph type (knowledge graph, attack graph, dependency graph), analysis technique (traversal, community detection, path finding, centrality analysis), and application area (misconfiguration detection, access control analysis, compliance verification).
+
+\textbf{Strengths}
+
+\begin{itemize}
+\tightlist
+\item
+  Comprehensive survey of graph techniques applicable to cloud security.\\
+\item
+  Identifies specific graph algorithms suited for different security tasks.\\
+\item
+  Highlights the benefits of graph-based resource modeling over flat data representations.\\
+\item
+  Discusses scalability challenges and solutions for large cloud environments.
+\end{itemize}
+
+\textbf{Limitations}
+
+\begin{itemize}
+\tightlist
+\item
+  Does not propose a unified framework integrating multiple graph techniques.\\
+\item
+  Limited discussion of contextual risk assessment using graph properties.\\
+\item
+  Does not address AI-assisted interpretation of graph-based security analysis.\\
+\item
+  Primarily focused on individual graph techniques rather than hybrid approaches.
+\end{itemize}
+
+\textbf{Relevance to CloudSentinel AI}\\
+CloudSentinel AI integrates multiple graph techniques---knowledge graph construction, attack path traversal, and centrality analysis for risk scoring---into a unified framework, demonstrating the value of combining graph-based approaches with contextual analysis and AI-assisted explanation.
+
+\subsection{4.7 Research on Cloud Security Configuration Compliance}
+
+Automated compliance assessment is a core capability of cloud security platforms. Research in this area focuses on mapping cloud configurations to regulatory frameworks and organizational policies while reducing the manual effort required for compliance verification.
+
+\emph{Paper 8: Cloud Security Awareness and Configuration Compliance}\\
+\textbf{Research Objective}\\
+This study examines the relationship between cloud security awareness, configuration practices, and compliance with established security frameworks, identifying factors that contribute to secure cloud deployments.
+
+\textbf{Methodology}\\
+The authors analyze cloud configuration data from multiple organizations, correlating security awareness metrics with configuration compliance scores to identify patterns associated with secure and insecure cloud deployments.
+
+\textbf{Strengths}
+
+\begin{itemize}
+\tightlist
+\item
+  Provides empirical evidence linking security awareness to configuration quality.\\
+\item
+  Identifies common compliance gaps across organizational cloud deployments.\\
+\item
+  Establishes baseline metrics for cloud security configuration assessment.\\
+\item
+  Discusses the role of automation in improving compliance outcomes.
+\end{itemize}
+
+\textbf{Limitations}
+
+\begin{itemize}
+\tightlist
+\item
+  Focuses on compliance assessment without addressing attack path analysis.\\
+\item
+  Does not incorporate contextual risk evaluation into compliance scoring.\\
+\item
+  Limited discussion of AI-assisted compliance recommendations.\\
+\item
+  Results may not generalize across all cloud providers and deployment models.
+\end{itemize}
+
+\textbf{Relevance to CloudSentinel AI}\\
+CloudSentinel AI extends traditional compliance assessment by incorporating contextual factors that influence the actual security impact of configuration violations, moving beyond checklist-based compliance toward risk-informed security assessment.
+
+\subsubsection{4.7.1 Critical Analysis of Cloud Misconfiguration Research}
+
+The reviewed studies collectively demonstrate significant progress in detecting cloud misconfigurations through rule-based validation, anomaly detection, Infrastructure-as-Code analysis, attack graph generation, explainable AI techniques, Large Language Model applications, and graph-based security analysis. These approaches have substantially improved organizations' ability to identify insecure cloud configurations and reduce operational security risks. However, several important research gaps remain.
+
+Most existing studies analyze isolated cloud resources or focus exclusively on individual cloud services such as IAM or Amazon S3. Few approaches model relationships among cloud assets or evaluate how multiple independent configuration errors may collectively enable complex attack scenarios. Attack graph research has advanced significantly, but most approaches do not incorporate contextual risk assessment or AI-assisted explanation capabilities. XAI research in cybersecurity provides foundational techniques, but specific applications to cloud security remain limited. LLM research demonstrates promising capabilities for security tasks, but integration into structured cloud security analysis pipelines has not been adequately explored.
+
+Furthermore, existing research provides limited support for contextual risk assessment that incorporates asset criticality, network exposure, identity privileges, and business impact into risk calculations. The combination of graph-based analysis, contextual risk scoring, and Explainable AI within a unified cloud security framework remains an underexplored research area. These limitations indicate the need for cloud security frameworks capable of integrating cloud asset relationships, attack graph generation, dynamic contextual risk scoring, and AI-assisted explanations---capabilities that form the foundation of the proposed CloudSentinel AI framework.
