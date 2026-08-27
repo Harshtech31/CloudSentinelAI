@@ -525,7 +525,7 @@ This is the \textbf{main mathematical contribution} of your framework.
 
 \subsubsection{\texorpdfstring{\textbf{Equation (5.1)}}{Equation (5.1)}}
 
-\subsubsection{\texorpdfstring{\textbf{R=αSn+βC+γA+δE\textbackslash boxed\{ R = \textbackslash alpha S\_n + \textbackslash beta C + \textbackslash gamma A + \textbackslash delta E \}R=αSn\hspace{0pt}+βC+γA+δE\hspace{0pt}}}{R=αSn+βC+γA+δE\textbackslash boxed\{ R = \textbackslash alpha S\_n + \textbackslash beta C + \textbackslash gamma A + \textbackslash delta E \}R=αSn\hspace{0pt}+βC+γA+δE\hspace{0pt}}}
+$R = \alpha S_n + \beta C + \gamma A + \delta E$
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
@@ -540,12 +540,12 @@ Description
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-(R) & Final Context-Aware Risk Score \\
-(S) & Severity Score of the detected misconfiguration \\
-(C) & Asset Criticality Score \\
-(A) & Attack Path Influence Score \\
-(E) & Exposure Score (public accessibility, network exposure, etc.) \\
-(\textbackslash alpha,\textbackslash beta,\textbackslash gamma,\textbackslash delta) & Weighting coefficients satisfying (\textbackslash alpha+\textbackslash beta+\textbackslash gamma+\textbackslash delta=1) \\
+$(R)$ & Final Context-Aware Risk Score \\
+$(S)$ & Severity Score of the detected misconfiguration \\
+$(C)$ & Asset Criticality Score \\
+$(A)$ & Attack Path Influence Score \\
+$(E)$ & Exposure Score (public accessibility, network exposure, etc.) \\
+$(\alpha, \beta, \gamma, \delta)$ & Weighting coefficients satisfying $(\alpha + \beta + \gamma + \delta = 1)$ \\
 \end{longtable}
 
 \subsection{Equation (5.2)}
@@ -556,7 +556,8 @@ Since security findings may originate from different tools or scoring systems (e
 
 \subsubsection{\texorpdfstring{\textbf{Equation}}{Equation}}
 
-Sn=S−Smin⁡Smax⁡−Smin⁡\textbackslash boxed\{ S\_n = \textbackslash frac\{S - S\_\{\textbackslash min\}\}\{S\_\{\textbackslash max\} - S\_\{\textbackslash min\}\} \}Sn\hspace{0pt}=Smax\hspace{0pt}−Smin\hspace{0pt}S−Smin\hspace{0pt}\hspace{0pt}\hspace{0pt}
+$S_n = \frac{S - S_{\min}}{S_{\max} - S_{\min}}$
+
 
 \begin{longtable}[]{@{}ll@{}}
 \toprule\noalign{}
@@ -565,15 +566,15 @@ Symbol & Description \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-(S\_n) & Normalized Severity Score \\
-(S) & Original Severity Score \\
-(S\_\{\textbackslash min\}) & Minimum possible severity value \\
-(S\_\{\textbackslash max\}) & Maximum possible severity value \\
+$(S_n)$ & Normalized Severity Score \\
+$(S)$ & Original Severity Score \\
+$(S_{\min})$ & Minimum possible severity value \\
+$(S_{\max})$ & Maximum possible severity value \\
 \end{longtable}
 
 \subsubsection{\texorpdfstring{\textbf{Value Range}}{Value Range}}
 
-0≤Sn≤10 \textbackslash leq S\_n \textbackslash leq 10≤Sn\hspace{0pt}≤1
+$0 \leq S_n \leq 1$
 
 where:
 
@@ -593,13 +594,13 @@ Different cloud resources do not have the same business value. For example, a pr
 
 \subsubsection{\texorpdfstring{\textbf{Equation}}{Equation}}
 
-C=w1D+w2B+w3P+w4I\textbackslash boxed\{ C = w\_1D + w\_2B + w\_3P + w\_4I \}C=w1\hspace{0pt}D+w2\hspace{0pt}B+w3\hspace{0pt}P+w4\hspace{0pt}I\hspace{0pt}
+$C = w_1 D + w_2 B + w_3 P + w_4 I$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{\texorpdfstring{\textbf{Subject to}}{Subject to}}
 
-w1+w2+w3+w4=1\textbackslash boxed\{ w\_1+w\_2+w\_3+w\_4=1 \}w1\hspace{0pt}+w2\hspace{0pt}+w3\hspace{0pt}+w4\hspace{0pt}=1\hspace{0pt}
+$w_1 + w_2 + w_3 + w_4 = 1$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -612,12 +613,12 @@ Symbol & Description \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-CCC & Asset Criticality Score \\
-DDD & Data Sensitivity Score \\
-BBB & Business Importance Score \\
-PPP & Privilege Level Score \\
-III & Internet Exposure Score \\
-w1,w2,w3,w4w\_1,w\_2,w\_3,w\_4w1\hspace{0pt},w2\hspace{0pt},w3\hspace{0pt},w4\hspace{0pt} & Weighting coefficients \\
+$C$ & Asset Criticality Score \\
+$D$ & Data Sensitivity Score \\
+$B$ & Business Importance Score \\
+$P$ & Privilege Level Score \\
+$I$ & Internet Exposure Score \\
+$w_1, w_2, w_3, w_4$ & Weighting coefficients \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
@@ -716,13 +717,13 @@ Cloud resources have different types of relationships (e.g., EC2 \(\rightarrow\)
 
 \subsubsection{\texorpdfstring{\textbf{Equation}}{Equation}}
 
-Wr=∑i=1nλiRi\textbackslash boxed\{ W\_r=\textbackslash sum\_\{i=1\}\^{}\{n\}\textbackslash lambda\_iR\_i \}Wr\hspace{0pt}=i=1∑n\hspace{0pt}λi\hspace{0pt}Ri\hspace{0pt}\hspace{0pt}
+$W_r = \sum_{i=1}^{n} \lambda_i R_i$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Subject to}
 
-∑i=1nλi=1\textbackslash boxed\{ \textbackslash sum\_\{i=1\}\^{}\{n\}\textbackslash lambda\_i=1 \}i=1∑n\hspace{0pt}λi\hspace{0pt}=1\hspace{0pt}
+$\sum_{i=1}^{n} \lambda_i = 1$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -735,10 +736,10 @@ Symbol & Description \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-WrW\_rWr\hspace{0pt} & Overall Relationship Weight \\
-RiR\_iRi\hspace{0pt} & Security significance score of the \emph{i}th relationship \\
-λi\textbackslash lambda\_iλi\hspace{0pt} & Weight assigned to the \emph{i}th relationship type \\
-nnn & Total number of relationship types connected to the asset \\
+$W_r$ & Overall Relationship Weight \\
+$R_i$ & Security significance score of the $i$th relationship \\
+$\lambda_i$ & Weight assigned to the $i$th relationship type \\
+$n$ & Total number of relationship types connected to the asset \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
@@ -776,7 +777,7 @@ The Knowledge Graph Connectivity Score measures the degree of connectivity of a 
 
 \subsubsection{\texorpdfstring{\textbf{Equation (9.1)}}{Equation (9.1)}}
 
-Kc(v)=deg⁡(v)N−1\textbackslash boxed\{ K\_c(v)=\textbackslash frac\{\textbackslash deg(v)\}\{N-1\} \}Kc\hspace{0pt}(v)=N−1deg(v)\hspace{0pt}\hspace{0pt}
+$K_c(v) = \frac{\deg(v)}{N-1}$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -795,16 +796,16 @@ Description
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Kc(v)K\_c(v)Kc\hspace{0pt}(v) & Connectivity Score of node vvv \\
-deg⁡(v)\textbackslash deg(v)deg(v) & Number of direct relationships (degree) of node vvv \\
-NNN & Total number of nodes in the knowledge graph \\
+$K_c(v)$ & Connectivity Score of node $v$ \\
+$\deg(v)$ & Number of direct relationships (degree) of node $v$ \\
+$N$ & Total number of nodes in the knowledge graph \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Value Range}
 
-0≤Kc(v)≤1\textbackslash boxed\{ 0 \textbackslash le K\_c(v) \textbackslash le 1 \}0≤Kc\hspace{0pt}(v)≤1\hspace{0pt}
+$0 \leq K_c(v) \leq 1$
 
 where
 
@@ -830,7 +831,7 @@ An attack path consists of multiple connected cloud resources. The probability o
 
 \subsubsection{\texorpdfstring{\textbf{Equation (9.2)}}{Equation (9.2)}}
 
-PAP=∏i=1npi\textbackslash boxed\{ P\_\{AP\}=\textbackslash prod\_\{i=1\}\^{}\{n\} p\_i \}PAP\hspace{0pt}=i=1∏n\hspace{0pt}pi\hspace{0pt}\hspace{0pt}
+$P_{AP} = \prod_{i=1}^{n} p_i$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -849,16 +850,16 @@ Description
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-PAPP\_\{AP\}PAP\hspace{0pt} & Probability of successfully exploiting the attack path \\
-pip\_ipi\hspace{0pt} & Probability of successfully exploiting the ithi\^{}\{th\}ith attack step \\
-nnn & Number of attack steps in the path \\
+$P_{AP}$ & Probability of successfully exploiting the attack path \\
+$p_i$ & Probability of successfully exploiting the $i$th attack step \\
+$n$ & Number of attack steps in the path \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Value Range}
 
-0≤PAP≤1\textbackslash boxed\{ 0 \textbackslash le P\_\{AP\}\textbackslash le1 \}0≤PAP\hspace{0pt}≤1\hspace{0pt}
+$0 \leq P_{AP} \leq 1$
 
 where
 
@@ -884,7 +885,7 @@ The Detection Rate measures the percentage of injected cloud security issues tha
 
 \subsubsection{\texorpdfstring{\textbf{Equation (10.1)}}{Equation (10.1)}}
 
-DR=NdNt×100\textbackslash boxed\{ DR=\textbackslash frac\{N\_d\}\{N\_t\}\textbackslash times100 \}DR=Nt\hspace{0pt}Nd\hspace{0pt}\hspace{0pt}×100\hspace{0pt}
+$DR = \frac{N_d}{N_t} \times 100$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -897,16 +898,16 @@ Symbol & Description \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-DRDRDR & Detection Rate (\%) \\
-NdN\_dNd\hspace{0pt} & Number of correctly detected misconfigurations \\
-NtN\_tNt\hspace{0pt} & Total number of injected misconfigurations \\
+$DR$ & Detection Rate (\%) \\
+$N_d$ & Number of correctly detected misconfigurations \\
+$N_t$ & Total number of injected misconfigurations \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Value Range}
 
-0\%≤DR≤100\%\textbackslash boxed\{ 0\textbackslash\% \textbackslash le DR \textbackslash le 100\textbackslash\% \}0\%≤DR≤100\%\hspace{0pt}
+$0\% \leq DR \leq 100\%$
 
 where
 
@@ -932,7 +933,7 @@ The Overall Security Posture Score provides a quantitative measure of the securi
 
 \subsubsection{\texorpdfstring{\textbf{Equation (11.1)}}{Equation (11.1)}}
 
-OSPS=100×(1−∑i=1nRin)\textbackslash boxed\{ OSPS = 100 \textbackslash times \textbackslash left(1 - \textbackslash frac\{\textbackslash sum\_\{i=1\}\^{}\{n\} R\_i\}\{n\}\textbackslash right) \}OSPS=100×(1−n∑i=1n\hspace{0pt}Ri\hspace{0pt}\hspace{0pt})\hspace{0pt}
+$OSPS = 100 \times \left(1 - \frac{\sum_{i=1}^{n} R_i}{n}\right)$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -951,16 +952,16 @@ Description
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-OSPSOSPSOSPS & Overall Security Posture Score (\%) \\
-RiR\_iRi\hspace{0pt} & Context-Aware Risk Score of the ithi\^{}\{th\}ith finding (normalized between 0 and 1) \\
-nnn & Total number of identified security findings \\
+$OSPS$ & Overall Security Posture Score (\%) \\
+$R_i$ & Context-Aware Risk Score of the $i$th finding (normalized between 0 and 1) \\
+$n$ & Total number of identified security findings \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Value Range}
 
-0≤OSPS≤100\textbackslash boxed\{ 0 \textbackslash le OSPS \textbackslash le 100 \}0≤OSPS≤100\hspace{0pt}
+$0 \leq OSPS \leq 100$
 
 where
 
@@ -991,13 +992,13 @@ The AI Recommendation Confidence Score quantifies the reliability of remediation
 
 \subsubsection{\texorpdfstring{\textbf{Equation (11.2)}}{Equation (11.2)}}
 
-CAI=ηM+(1−η)Es\textbackslash boxed\{ C\_\{AI\}=\textbackslash eta M+(1-\textbackslash eta)E\_s \}CAI\hspace{0pt}=ηM+(1−η)Es\hspace{0pt}\hspace{0pt}
+$C_{AI} = \eta M + (1 - \eta) E_s$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Subject to}
 
-0≤η≤1\textbackslash boxed\{ 0\textbackslash le \textbackslash eta \textbackslash le1 \}0≤η≤1\hspace{0pt}
+$0 \leq \eta \leq 1$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -1010,17 +1011,17 @@ Symbol & Description \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-CAIC\_\{AI\}CAI\hspace{0pt} & AI Recommendation Confidence Score \\
-MMM & AI Model Confidence Score \\
-EsE\_sEs\hspace{0pt} & Security Evidence Score \\
-η\textbackslash etaη & Weight assigned to the AI model confidence \\
+$C_{AI}$ & AI Recommendation Confidence Score \\
+$M$ & AI Model Confidence Score \\
+$E_s$ & Security Evidence Score \\
+$\eta$ & Weight assigned to the AI model confidence \\
 \end{longtable}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Value Range}
 
-0≤CAI≤1\textbackslash boxed\{ 0\textbackslash le C\_\{AI\}\textbackslash le1 \}0≤CAI\hspace{0pt}≤1\hspace{0pt}
+$0 \leq C_{AI} \leq 1$
 
 where
 
@@ -1041,7 +1042,7 @@ Below 0.50 & Low Confidence \\
 
 \subsubsection{Variable Description}
 
-\subsubsection{\texorpdfstring{\textbf{AI Model Confidence (MMM)}}{AI Model Confidence (MMM)}}
+\subsubsection{\texorpdfstring{\textbf{AI Model Confidence (M)}}{AI Model Confidence (M)}}
 
 Represents the confidence associated with the recommendation generated by the Large Language Model.
 
@@ -1059,7 +1060,7 @@ It reflects factors such as:
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
-\subsubsection{\texorpdfstring{\textbf{Security Evidence Score (EsE\_sEs\hspace{0pt})}}{Security Evidence Score (EsE\_sEs\hspace{0pt})}}
+\subsubsection{\texorpdfstring{\textbf{Security Evidence Score ($E_s$)}}{Security Evidence Score ($E_s$)}}
 
 Measures the quality of the supporting evidence used by CloudSentinel AI.
 
@@ -1140,7 +1141,7 @@ Cloud Asset Inventory
 
 \subsubsection{\texorpdfstring{\textbf{Time Complexity}}{Time Complexity}}
 
-O(n)O(n)O(n)
+$O(n)$
 
 where
 
@@ -1223,30 +1224,30 @@ Security Findings
 
 \subsubsection{Time Complexity}
 
-O(n×m)O(n \textbackslash times m)O(n×m)
+$O(n \times m)$
 
 where
 
 \begin{itemize}
 \tightlist
 \item
-  nnn = Number of cloud resources\\
+$n$ = Number of cloud resources\\
 \item
-  mmm = Number of security rules evaluated for each resource
+$m$ = Number of security rules evaluated for each resource
 \end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Space Complexity}
 
-O(f)O(f)O(f)
+$O(f)$
 
 where
 
 \begin{itemize}
 \tightlist
 \item
-  fff = Number of detected security findings
+$f$ = Number of detected security findings
 \end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
@@ -1322,23 +1323,23 @@ Cloud Knowledge Graph
 
 \subsubsection{Time Complexity}
 
-O(V+E)O(V + E)O(V+E)
+$O(V + E)$
 
 where
 
 \begin{itemize}
 \tightlist
 \item
-  VVV = Number of nodes (cloud resources and findings)\\
+$V$ = Number of nodes (cloud resources and findings)\\
 \item
-  EEE = Number of relationships between resources
+$E$ = Number of relationships between resources
 \end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Space Complexity}
 
-O(V+E)O(V + E)O(V+E)
+$O(V + E)$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -1420,23 +1421,23 @@ Ranked Attack Paths
 
 Using \textbf{Breadth-First Search (BFS)} over the graph:
 
-O(V+E)O(V + E)O(V+E)
+$O(V + E)$
 
 where
 
 \begin{itemize}
 \tightlist
 \item
-  VVV = Number of graph nodes\\
+$V$ = Number of graph nodes\\
 \item
-  EEE = Number of graph relationships
+$E$ = Number of graph relationships
 \end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Space Complexity}
 
-O(V)O(V)O(V)
+$O(V)$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -1502,7 +1503,7 @@ Prioritized Risk Assessment
 5. Compute the attack path probability.\\
 6. Determine the exposure score.\\
 7. Compute the Context-Aware Risk Score:\\
-R = αSn + βC + γPAP + δE\\
+$R = \alpha S_n + \beta C + \gamma P_{AP} + \delta E$\\
 8. Assign the corresponding risk level.\\
 9. Store the finding and its risk score.\\
 10. End For\\
@@ -1512,14 +1513,14 @@ R = αSn + βC + γPAP + δE\\
 
 \subsubsection{Time Complexity}
 
-O(flog⁡f)O(f \textbackslash log f)O(flogf)
+$O(f \log f)$
 
 where
 
 \begin{itemize}
 \tightlist
 \item
-  fff = Number of detected security findings.
+$f$ = Number of detected security findings.
 \end{itemize}
 
 The dominant operation is sorting the findings after computing their individual risk scores.
@@ -1528,7 +1529,7 @@ The dominant operation is sorting the findings after computing their individual 
 
 \subsubsection{Space Complexity}
 
-O(f)O(f)O(f)
+$O(f)$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -1615,14 +1616,14 @@ AI Security Recommendations
 
 \subsubsection{Time Complexity}
 
-O(f)O(f)O(f)
+$O(f)$
 
 where
 
 \begin{itemize}
 \tightlist
 \item
-  fff = Number of prioritized security findings.
+$f$ = Number of prioritized security findings.
 \end{itemize}
 
 If the AI inference time is treated as a constant per finding, the overall complexity grows linearly with the number of findings.
@@ -1631,7 +1632,7 @@ If the AI inference time is treated as a constant per finding, the overall compl
 
 \subsubsection{Space Complexity}
 
-O(f)O(f)O(f)
+$O(f)$
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -1714,40 +1715,40 @@ AI Recommendations
 
 The overall time complexity is determined by the combined execution of the framework's modules:
 
-O(nm+V+E+flog⁡f)O(nm + V + E + f \textbackslash log f)O(nm+V+E+flogf)
+$O(nm + V + E + f \log f)$
 
 where:
 
 \begin{itemize}
 \tightlist
 \item
-  nnn = Number of cloud resources\\
+$n$ = Number of cloud resources\\
 \item
-  mmm = Number of security rules evaluated per resource\\
+$m$ = Number of security rules evaluated per resource\\
 \item
-  VVV = Number of graph nodes\\
+$V$ = Number of graph nodes\\
 \item
-  EEE = Number of graph relationships\\
+$E$ = Number of graph relationships\\
 \item
-  fff = Number of detected security findings
+$f$ = Number of detected security findings
 \end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \subsubsection{Space Complexity}
 
-O(V+E+f)O(V + E + f)O(V+E+f)
+$O(V + E + f)$
 
 where:
 
 \begin{itemize}
 \tightlist
 \item
-  VVV = Number of graph nodes\\
+$V$ = Number of graph nodes\\
 \item
-  EEE = Number of graph relationships\\
+$E$ = Number of graph relationships\\
 \item
-  fff = Number of detected security findings
+$f$ = Number of detected security findings
 \end{itemize}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
@@ -1758,42 +1759,32 @@ The Complete CloudSentinel AI Workflow orchestrates all framework modules into a
 
 \section{Appendix Figures}
 
-\begin{figure}
-\hypertarget{fig:a_1}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-a.1.png}
 \caption{Appendix figure A.1.}\label{fig:a_1}
-}
 \end{figure}
 
-\begin{figure}
-\hypertarget{fig:a_2}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-a.2.png}
 \caption{Appendix figure A.2.}\label{fig:a_2}
-}
 \end{figure}
 
-\begin{figure}
-\hypertarget{fig:a_3}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-a.3.png}
 \caption{Appendix figure A.3.}\label{fig:a_3}
-}
 \end{figure}
 
-\begin{figure}
-\hypertarget{fig:a_4}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-a.4.png}
 \caption{Appendix figure A.4.}\label{fig:a_4}
-}
 \end{figure}
 
-\begin{figure}
-\hypertarget{fig:a_5}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-a.5.png}
 \caption{Appendix figure A.5.}\label{fig:a_5}
-}
 \end{figure}

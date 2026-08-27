@@ -4,12 +4,10 @@
 
 Based on the limitations identified in the previous chapters, this research proposes CloudSentinel AI, a context-aware cloud security framework designed to enhance traditional Cloud Security Posture Management (CSPM). Unlike existing solutions that primarily evaluate cloud resources independently, the proposed framework correlates cloud assets, security configurations, identities, and network relationships to provide a comprehensive assessment of the cloud security posture. The proposed framework combines automated cloud asset discovery, rule-based security validation, graph-based resource modeling, attack path generation, contextual risk assessment, and Explainable Artificial Intelligence (XAI) into a unified architecture. This integration enables security analysts to understand not only which cloud resources are misconfigured but also how multiple weaknesses can interact to create exploitable attack paths. The overall architecture of the proposed CloudSentinel AI framework is illustrated in Figure 6.1. The architecture is organized into modular components, each responsible for a specific stage of the cloud security assessment process. This modular design improves scalability, maintainability, and extensibility while allowing future integration with additional cloud providers and security technologies.
 
-\begin{figure}
-\hypertarget{fig:6_1}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-6.1.png}
 \caption{CloudSentinel AI System Architecture.}\label{fig:6_1}
-}
 \end{figure}
 
 \subsection{6.2 Design Objectives}
@@ -69,26 +67,20 @@ This chapter presented the CloudSentinel AI framework, detailing its modular arc
 
 \subsection{Additional Figures}
 
-\begin{figure}
-\hypertarget{fig:6_2}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-6.2.png}
 \caption{Cloud Asset and Security Analysis Workflow.}\label{fig:6_2}
-}
 \end{figure}
 
-\begin{figure}
-\hypertarget{fig:6_3}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-6.3.png}
 \caption{Knowledge Graph Construction Pipeline.}\label{fig:6_3}
-}
 \end{figure}
 
-\begin{figure}
-\hypertarget{fig:6_4}{%
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth,height=\textheight]{figures/image-6.4.png}
 \caption{Context-Aware Risk Assessment Flow.}\label{fig:6_4}
-}
 \end{figure}
