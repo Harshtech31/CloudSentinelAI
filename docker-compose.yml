@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudsentinel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cloudsentinel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudsentinel_secure_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-cloudsentinel_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cloudsentinel} -d ${POSTGRES_DB:-cloudsentinel_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloudsentinel-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cloudsentinel-backend
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: development
+      DEBUG: "True"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cloudsentinel}:${POSTGRES_PASSWORD:-cloudsentinel_secure_pass}@postgres:5432/${POSTGRES_DB:-cloudsentinel_db}
+      DATABASE_SYNC_URL: postgresql+psycopg2://${POSTGRES_USER:-cloudsentinel}:${POSTGRES_PASSWORD:-cloudsentinel_secure_pass}@postgres:5432/${POSTGRES_DB:-cloudsentinel_db}
+      SECRET_KEY: ${SECRET_KEY:-dev_secret_key_cloudsentinel_ai_super_secret_32_chars}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      BACKEND_CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - cloudsentinel-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cloudsentinel-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api/v1
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+    networks:
+      - cloudsentinel-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  cloudsentinel-network:
+    driver: bridge
