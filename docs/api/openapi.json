@@ -1,0 +1,1660 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CloudSentinel AI",
+    "summary": "Automated Cloud Security Posture Management & Attack Graph Analysis",
+    "description": "\n## \ud83d\udee1\ufe0f CloudSentinel AI API Overview\n\nCloudSentinel AI is an automated **Cloud Security Posture Management (CSPM)** and **Graph-Based Attack Path Analysis** platform.\n\n### \ud83c\udf1f Core Capabilities\n- **Multi-Cloud Collection**: Automated configuration gathering across IAM, EC2, S3, VPC, RDS, and CloudTrail.\n- **Rule Engine & Compliance**: Policy evaluation against CIS AWS Benchmark v1.5 and Well-Architected Framework.\n- **Graph Attack Path Analysis**: Knowledge graph modeling and multi-hop attack trajectory discovery (Internet \u2192 Compute \u2192 Role \u2192 Sensitive Data).\n- **Contextual Risk Engine**: Dynamic risk scoring based on asset criticality, network exposure, and blast radius.\n- **AI-Powered Explanations**: Contextual root cause explanation and remediation code generation.\n\n### \ud83d\udd11 Authentication\nProtected endpoints require a **Bearer JWT access token** passed in the `Authorization` header:\n```http\nAuthorization: Bearer <your_access_token>\n```\n",
+    "contact": {
+      "name": "CloudSentinel AI Engineering Team",
+      "url": "https://github.com/Harshtech31/CloudSentinelAI",
+      "email": "lead@cloudsentinel.ai"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Liveness Health Probe",
+        "description": "Returns the operational status, version, and running environment of the CloudSentinel backend.",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Readiness Health Probe",
+        "description": "Validates that database connections, graph engines, and attack path discovery services are initialized.",
+        "operationId": "readiness_check_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register New User Account",
+        "description": "Registers a new user with email, password, display name, and initial RBAC role.",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "User Login & Token Generation",
+        "description": "Authenticates user credentials and returns signed JWT access and refresh tokens.",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh JWT Access Token",
+        "description": "Generates a refreshed access token using a valid, unexpired refresh token.",
+        "operationId": "refresh_token_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scan/start": {
+      "post": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Initiate Cloud Security Scan",
+        "description": "Trigger an automated multi-cloud configuration collection and security evaluation.",
+        "operationId": "start_scan_api_v1_scan_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScanStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scan/{scan_id}/status": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Poll Scan Execution Status",
+        "description": "Check real-time execution progress of an active scan.",
+        "operationId": "get_scan_status_api_v1_scan__scan_id__status_get",
+        "parameters": [
+          {
+            "name": "scan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scan/{scan_id}/summary": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Get Scan Summary Metrics",
+        "description": "Returns aggregate metric counts for a finished scan.",
+        "operationId": "get_scan_summary_api_v1_scan__scan_id__summary_get",
+        "parameters": [
+          {
+            "name": "scan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/findings": {
+      "get": {
+        "tags": [
+          "Findings"
+        ],
+        "summary": "List Security Findings",
+        "description": "Retrieve paginated list of security misconfiguration findings, optionally filtered by severity.",
+        "operationId": "list_findings_api_v1_findings_get",
+        "parameters": [
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Severity"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter findings by severity level",
+              "title": "Severity"
+            },
+            "description": "Filter findings by severity level"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/findings/stats/summary": {
+      "get": {
+        "tags": [
+          "Findings"
+        ],
+        "summary": "Get Finding Severity Statistics",
+        "description": "Aggregates count of all findings broken down by severity level (critical, high, medium, low, info).",
+        "operationId": "get_findings_stats_api_v1_findings_stats_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/findings/{finding_id}": {
+      "get": {
+        "tags": [
+          "Findings"
+        ],
+        "summary": "Get Single Finding Detail",
+        "description": "Fetch full finding detail including violation description and remediation instructions.",
+        "operationId": "get_finding_api_v1_findings__finding_id__get",
+        "parameters": [
+          {
+            "name": "finding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finding Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/graph": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Security Knowledge Graph",
+        "description": "Fetch full multi-cloud topology graph formatted as Cytoscape.js nodes and edges.",
+        "operationId": "get_graph_api_v1_graph_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/graph/stats": {
+      "get": {
+        "tags": [
+          "Graph"
+        ],
+        "summary": "Get Graph Topology Statistics",
+        "description": "Returns aggregate counts of nodes, relationship edges, and detected attack paths.",
+        "operationId": "get_graph_stats_api_v1_graph_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/summary": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get Executive Dashboard Summary",
+        "description": "Returns high-level posture metrics including overall security score, scanned assets, and active attack paths.",
+        "operationId": "get_dashboard_summary_api_v1_dashboard_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/generate": {
+      "post": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Trigger Report Generation",
+        "description": "Compiles an assessment report in PDF, HTML, JSON, or CSV format with contextual AI explanations.",
+        "operationId": "generate_report_api_v1_reports_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/{report_id}/download": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Download Generated Report File",
+        "description": "Streams or downloads the generated assessment report file.",
+        "operationId": "download_report_api_v1_reports__report_id__download_get",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "List Generated Security Reports",
+        "description": "Returns list of previously generated export reports for the user or organization.",
+        "operationId": "list_reports_api_v1_reports_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Root",
+        "description": "Root service discovery endpoint.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CloudProvider": {
+        "type": "string",
+        "enum": [
+          "aws",
+          "gcp",
+          "azure"
+        ],
+        "title": "CloudProvider",
+        "description": "Supported cloud infrastructure providers."
+      },
+      "CytoscapeEdge": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CytoscapeEdgeData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "CytoscapeEdge",
+        "description": "Cytoscape.js edge element."
+      },
+      "CytoscapeEdgeData": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique edge ID",
+            "example": "edge_0_node_internet_node_i_0123"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "Source node ID",
+            "example": "node_internet"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target",
+            "description": "Target node ID",
+            "example": "node_i_0123"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Relationship edge type",
+            "example": "EXPOSES_PORT"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "target",
+          "type"
+        ],
+        "title": "CytoscapeEdgeData",
+        "description": "Data payload for a Cytoscape.js graph edge."
+      },
+      "CytoscapeElements": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/CytoscapeNode"
+            },
+            "type": "array",
+            "title": "Nodes",
+            "description": "Graph nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/CytoscapeEdge"
+            },
+            "type": "array",
+            "title": "Edges",
+            "description": "Graph edges"
+          }
+        },
+        "type": "object",
+        "title": "CytoscapeElements",
+        "description": "Combined elements container for Cytoscape.js canvas."
+      },
+      "CytoscapeNode": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CytoscapeNodeData"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "CytoscapeNode",
+        "description": "Cytoscape.js node element."
+      },
+      "CytoscapeNodeData": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique node ID",
+            "example": "node_i_0123"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "description": "Display label",
+            "example": "Web-Server-EC2"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Asset node type",
+            "example": "EC2_INSTANCE"
+          },
+          "arn": {
+            "type": "string",
+            "title": "Arn",
+            "description": "Resource ARN",
+            "default": "",
+            "example": "arn:aws:ec2:us-east-1:123456789012:instance/i-0123"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "description": "Asset cloud region",
+            "default": "",
+            "example": "us-east-1"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "type"
+        ],
+        "title": "CytoscapeNodeData",
+        "description": "Data payload for a Cytoscape.js graph node."
+      },
+      "DashboardSummaryResponse": {
+        "properties": {
+          "security_score": {
+            "type": "number",
+            "title": "Security Score",
+            "description": "Overall cloud security score (0-100)",
+            "example": 87.5
+          },
+          "scanned_resources": {
+            "type": "integer",
+            "title": "Scanned Resources",
+            "description": "Total cloud assets scanned",
+            "example": 142
+          },
+          "total_findings": {
+            "type": "integer",
+            "title": "Total Findings",
+            "description": "Total active misconfigurations",
+            "example": 15
+          },
+          "critical_findings": {
+            "type": "integer",
+            "title": "Critical Findings",
+            "description": "Critical severity findings count",
+            "example": 2
+          },
+          "attack_paths_identified": {
+            "type": "integer",
+            "title": "Attack Paths Identified",
+            "description": "Total exploitable attack chains detected",
+            "example": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "security_score",
+          "scanned_resources",
+          "total_findings",
+          "critical_findings",
+          "attack_paths_identified"
+        ],
+        "title": "DashboardSummaryResponse",
+        "description": "Executive security dashboard posture summary."
+      },
+      "FindingListResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total matching findings count",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "description": "Current page number",
+            "default": 1,
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit",
+            "description": "Items per page",
+            "default": 50,
+            "example": 50
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingResponse"
+            },
+            "type": "array",
+            "title": "Findings",
+            "description": "List of findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total"
+        ],
+        "title": "FindingListResponse",
+        "description": "Paginated list of findings."
+      },
+      "FindingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique finding identifier",
+            "example": "fnd_01j7b9"
+          },
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id",
+            "description": "Associated scan identifier",
+            "example": "scn_83f12a9c"
+          },
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id",
+            "description": "Identifier of the rule violated",
+            "example": "AWS-IAM-001"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Short finding summary",
+            "example": "Root account MFA is disabled"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Detailed description of misconfiguration",
+            "example": "The root account has console access enabled without multi-factor authentication."
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity",
+            "description": "Vulnerability severity level",
+            "example": "critical"
+          },
+          "risk_score": {
+            "type": "number",
+            "title": "Risk Score",
+            "description": "Calculated risk score (0.0 - 10.0)",
+            "example": 9.5
+          },
+          "resource_type": {
+            "type": "string",
+            "title": "Resource Type",
+            "description": "Cloud resource type",
+            "example": "iam_user"
+          },
+          "resource_arn": {
+            "type": "string",
+            "title": "Resource Arn",
+            "description": "Resource Amazon Resource Name or ID",
+            "example": "arn:aws:iam::123456789012:root"
+          },
+          "region": {
+            "type": "string",
+            "title": "Region",
+            "description": "Cloud region of affected resource",
+            "default": "global",
+            "example": "us-east-1"
+          },
+          "remediation_guidance": {
+            "type": "string",
+            "title": "Remediation Guidance",
+            "description": "Recommended remediation action",
+            "default": "",
+            "example": "Enable hardware or virtual MFA for the AWS root account."
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Finding lifecycle status",
+            "default": "open",
+            "example": "open"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Detection timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scan_id",
+          "rule_id",
+          "title",
+          "description",
+          "severity",
+          "risk_score",
+          "resource_type",
+          "resource_arn"
+        ],
+        "title": "FindingResponse",
+        "description": "Single security misconfiguration finding model."
+      },
+      "FindingStatsResponse": {
+        "properties": {
+          "critical": {
+            "type": "integer",
+            "title": "Critical",
+            "description": "Count of critical findings",
+            "default": 0,
+            "example": 2
+          },
+          "high": {
+            "type": "integer",
+            "title": "High",
+            "description": "Count of high findings",
+            "default": 0,
+            "example": 5
+          },
+          "medium": {
+            "type": "integer",
+            "title": "Medium",
+            "description": "Count of medium findings",
+            "default": 0,
+            "example": 8
+          },
+          "low": {
+            "type": "integer",
+            "title": "Low",
+            "description": "Count of low findings",
+            "default": 0,
+            "example": 3
+          },
+          "info": {
+            "type": "integer",
+            "title": "Info",
+            "description": "Count of info findings",
+            "default": 0,
+            "example": 1
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Total active findings",
+            "default": 0,
+            "example": 19
+          }
+        },
+        "type": "object",
+        "title": "FindingStatsResponse",
+        "description": "Aggregated finding counts grouped by severity."
+      },
+      "GraphResponse": {
+        "properties": {
+          "elements": {
+            "$ref": "#/components/schemas/CytoscapeElements"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/GraphStatsResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "elements",
+          "stats"
+        ],
+        "title": "GraphResponse",
+        "description": "Complete graph response with elements and stats."
+      },
+      "GraphStatsResponse": {
+        "properties": {
+          "total_nodes": {
+            "type": "integer",
+            "title": "Total Nodes",
+            "description": "Total infrastructure nodes in graph",
+            "default": 0,
+            "example": 48
+          },
+          "total_edges": {
+            "type": "integer",
+            "title": "Total Edges",
+            "description": "Total relationship edges in graph",
+            "default": 0,
+            "example": 62
+          },
+          "attack_paths_count": {
+            "type": "integer",
+            "title": "Attack Paths Count",
+            "description": "Identified attack paths",
+            "default": 0,
+            "example": 4
+          }
+        },
+        "type": "object",
+        "title": "GraphStatsResponse",
+        "description": "Knowledge graph topology statistics."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Service health status indicator",
+            "example": "ok"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service",
+            "description": "Name of the service",
+            "example": "CloudSentinel AI"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Application version",
+            "example": "0.1.0"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Current running environment",
+            "example": "development"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "version",
+          "environment"
+        ],
+        "title": "HealthResponse",
+        "description": "Liveness probe response model."
+      },
+      "LoginRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username",
+            "description": "User email or username",
+            "example": "harshith@cloudsentinel.ai"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "description": "User password",
+            "example": "SecurePassword123!"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "User login payload."
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Overall readiness status",
+            "example": "ready"
+          },
+          "components": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Components",
+            "description": "Health states of individual sub-engines and connections",
+            "example": {
+              "api": "healthy",
+              "attack_engine": "ready",
+              "database": "configured",
+              "graph_engine": "ready"
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "components"
+        ],
+        "title": "ReadinessResponse",
+        "description": "Readiness probe response model checking underlying components."
+      },
+      "RefreshTokenRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token",
+            "description": "Valid JWT refresh token",
+            "example": "eyJhbGciOiJIUzI1Ni..."
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshTokenRequest",
+        "description": "Refresh token payload."
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "User email address",
+            "example": "harshith@cloudsentinel.ai"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Password",
+            "description": "User password (min 8 chars)",
+            "example": "SecurePassword123!"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name",
+            "description": "User full display name",
+            "default": "Harshith Lead",
+            "example": "Harshith"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "description": "RBAC user role",
+            "default": "analyst"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest",
+        "description": "User account registration payload."
+      },
+      "ReportFormat": {
+        "type": "string",
+        "enum": [
+          "json",
+          "csv",
+          "html",
+          "pdf"
+        ],
+        "title": "ReportFormat",
+        "description": "Export report formats."
+      },
+      "ReportGenerateRequest": {
+        "properties": {
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id",
+            "description": "Target scan ID to generate report for",
+            "example": "scn_83f12a9c"
+          },
+          "format": {
+            "$ref": "#/components/schemas/ReportFormat",
+            "description": "Export format (pdf, html, json, csv)",
+            "default": "pdf"
+          },
+          "include_ai_explanations": {
+            "type": "boolean",
+            "title": "Include Ai Explanations",
+            "description": "Include LLM remediation guidance in report",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "scan_id"
+        ],
+        "title": "ReportGenerateRequest",
+        "description": "Payload to trigger security report compilation."
+      },
+      "ReportListResponse": {
+        "properties": {
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/ReportResponse"
+            },
+            "type": "array",
+            "title": "Reports",
+            "description": "List of reports"
+          }
+        },
+        "type": "object",
+        "title": "ReportListResponse",
+        "description": "List of generated reports."
+      },
+      "ReportResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique report identifier",
+            "example": "rep_01k9m2"
+          },
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id",
+            "description": "Associated scan identifier",
+            "example": "scn_83f12a9c"
+          },
+          "format": {
+            "$ref": "#/components/schemas/ReportFormat",
+            "description": "Report format",
+            "example": "pdf"
+          },
+          "download_url": {
+            "type": "string",
+            "title": "Download Url",
+            "description": "API download URL",
+            "example": "/api/v1/reports/rep_01k9m2/download"
+          },
+          "file_size_bytes": {
+            "type": "integer",
+            "title": "File Size Bytes",
+            "description": "Generated file size in bytes",
+            "default": 0,
+            "example": 248000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Generation timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scan_id",
+          "format",
+          "download_url"
+        ],
+        "title": "ReportResponse",
+        "description": "Generated report metadata."
+      },
+      "ScanStartRequest": {
+        "properties": {
+          "target_cloud": {
+            "$ref": "#/components/schemas/CloudProvider",
+            "description": "Target cloud provider to scan",
+            "default": "aws"
+          },
+          "regions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Regions",
+            "description": "List of regions to scan",
+            "default": [
+              "us-east-1"
+            ],
+            "example": [
+              "us-east-1",
+              "us-west-2"
+            ]
+          },
+          "services": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Services",
+            "description": "Services to collect and analyze",
+            "default": [
+              "iam",
+              "ec2",
+              "s3",
+              "vpc",
+              "security_groups",
+              "rds",
+              "cloudtrail"
+            ],
+            "example": [
+              "iam",
+              "ec2",
+              "s3"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ScanStartRequest",
+        "description": "Payload to initiate a new cloud scan."
+      },
+      "ScanStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "running",
+          "completed",
+          "failed",
+          "cancelled"
+        ],
+        "title": "ScanStatus",
+        "description": "Lifecycle status of a cloud infrastructure security scan."
+      },
+      "ScanStatusResponse": {
+        "properties": {
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id",
+            "description": "Unique scan identifier",
+            "example": "scn_83f12a9c"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ScanStatus",
+            "description": "Current status of scan execution",
+            "example": "running"
+          },
+          "target_cloud": {
+            "$ref": "#/components/schemas/CloudProvider",
+            "description": "Target cloud provider",
+            "example": "aws"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Scan start timestamp"
+          },
+          "progress_percentage": {
+            "type": "integer",
+            "title": "Progress Percentage",
+            "description": "Scan progress (0-100%)",
+            "default": 0,
+            "example": 50
+          }
+        },
+        "type": "object",
+        "required": [
+          "scan_id",
+          "status",
+          "target_cloud"
+        ],
+        "title": "ScanStatusResponse",
+        "description": "Real-time scan status model."
+      },
+      "ScanSummaryResponse": {
+        "properties": {
+          "scan_id": {
+            "type": "string",
+            "title": "Scan Id",
+            "description": "Unique scan identifier",
+            "example": "scn_83f12a9c"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ScanStatus",
+            "description": "Execution status",
+            "example": "completed"
+          },
+          "total_findings": {
+            "type": "integer",
+            "title": "Total Findings",
+            "description": "Total misconfigurations identified",
+            "default": 0,
+            "example": 12
+          },
+          "critical_findings": {
+            "type": "integer",
+            "title": "Critical Findings",
+            "description": "Critical severity findings count",
+            "default": 0,
+            "example": 2
+          },
+          "high_findings": {
+            "type": "integer",
+            "title": "High Findings",
+            "description": "High severity findings count",
+            "default": 0,
+            "example": 4
+          },
+          "attack_paths_count": {
+            "type": "integer",
+            "title": "Attack Paths Count",
+            "description": "Exploitable attack paths discovered",
+            "default": 0,
+            "example": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "scan_id",
+          "status"
+        ],
+        "title": "ScanSummaryResponse",
+        "description": "Summary metrics of a scan."
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low",
+          "info"
+        ],
+        "title": "Severity",
+        "description": "Vulnerability and finding severity levels."
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "Signed JWT access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token",
+            "description": "Signed JWT refresh token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Token type",
+            "default": "bearer",
+            "example": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Access token expiration in seconds",
+            "default": 3600,
+            "example": 3600
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token"
+        ],
+        "title": "TokenResponse",
+        "description": "JWT Access and Refresh token response."
+      },
+      "UserResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique user identifier",
+            "example": "usr_01j8k9"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email",
+            "description": "User email address",
+            "example": "harshith@cloudsentinel.ai"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name",
+            "description": "User full name",
+            "example": "Harshith"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "description": "Assigned RBAC role",
+            "example": "analyst"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Account active status",
+            "default": true,
+            "example": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Creation timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "role"
+        ],
+        "title": "UserResponse",
+        "description": "Public user profile response."
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "analyst",
+          "viewer"
+        ],
+        "title": "UserRole",
+        "description": "Role-based access control roles."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Liveness and readiness probes for monitoring backend sub-engines and database connectivity."
+    },
+    {
+      "name": "Authentication",
+      "description": "User account registration, JWT token generation, verification, and role-based access control (RBAC)."
+    },
+    {
+      "name": "Scans",
+      "description": "Multi-cloud infrastructure collection, scan orchestration, status polling, and scan history."
+    },
+    {
+      "name": "Findings",
+      "description": "Security misconfiguration findings, CIS AWS Benchmark violations, severity metrics, and remediation."
+    },
+    {
+      "name": "Graph",
+      "description": "Multi-cloud security knowledge graph, NetworkX traversals, and Cytoscape.js visual graph topologies."
+    },
+    {
+      "name": "Dashboard",
+      "description": "Executive security posture metrics, compliance scores, and risk distributions."
+    },
+    {
+      "name": "Reports",
+      "description": "Export comprehensive security assessment reports in PDF, HTML, JSON, and CSV formats."
+    }
+  ]
+}
