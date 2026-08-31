@@ -1,0 +1,53 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Pytest Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cloudsentinel
+          POSTGRES_PASSWORD: cloudsentinel_secure_pass
+          POSTGRES_DB: cloudsentinel_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-asyncio pytest-cov httpx
+
+      - name: Run Pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://cloudsentinel:cloudsentinel_secure_pass@localhost:5432/cloudsentinel_test_db
+          DATABASE_SYNC_URL: postgresql+psycopg2://cloudsentinel:cloudsentinel_secure_pass@localhost:5432/cloudsentinel_test_db
+          SECRET_KEY: test-secret-key-for-continuous-integration-0123456789
+          ENVIRONMENT: testing
+        run: |
+          cd backend
+          pytest -v --cov=app --cov-report=term-missing
