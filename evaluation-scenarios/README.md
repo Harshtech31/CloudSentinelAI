@@ -16,6 +16,9 @@ This directory is the source of truth for the controlled AWS evaluation catalogu
 - `catalog.json` — scenario metadata and test boundaries.
 - `ground-truth/catalog.json` — expected findings, negative controls, candidate-path expectations, and evidence requirements.
 - `scripts/validate_catalog.py` — dependency-free validation of the two JSON files.
+- `scripts/run_local_scenarios.py` — safe in-memory fixture validation using the backend attack-graph classes; it never calls AWS.
+- `tests/test_local_scenarios.py` — automated local-fixture tests for S1--S6.
+- `terraform/` — reserved for reviewed, tagged, non-production AWS infrastructure.
 - `evidence/` — local, untracked-by-convention location for execution records. Do not place secrets or sensitive data here.
 
 ## Scenario lifecycle
@@ -33,6 +36,8 @@ Run from the repository root:
 
 ```bash
 python3 evaluation-scenarios/scripts/validate_catalog.py
+python3 evaluation-scenarios/scripts/run_local_scenarios.py
+python3 -m pytest evaluation-scenarios/tests
 ```
 
 This validates catalogue structure only. It does not create AWS resources, call AWS APIs, or assess cloud security.
