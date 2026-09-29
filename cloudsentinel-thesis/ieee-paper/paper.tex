@@ -33,8 +33,11 @@ Knowledge graphs provide a flexible representation for entities and their relati
 Cloud misconfiguration analysis is also important for identity controls. For example, anomalous AWS IAM policies can be identified through policy analysis \cite{vanede2022iam}. Explainability is an active cybersecurity research area \cite{rjoub2023xai}; however, generated natural-language text alone is not explainability. LLM-assisted output must be grounded in deterministic evidence and reviewed by a human, especially when it contains remediation advice \cite{xu2024llmcybersecurity}.
 
 \section{Proposed Framework}
-\subsection{Architecture}
-The proposed pipeline contains five stages. First, an asset collector retrieves selected AWS metadata for EC2, S3, IAM, VPC, security groups, RDS, and CloudTrail. Second, a configuration analyzer evaluates versioned rules derived from documented security guidance. Third, a graph builder represents assets as nodes and supported relationships as typed edges. Fourth, a candidate-path engine searches the graph under an explicit threat model. Finally, a reporting component presents findings, path evidence, prioritisation rationale, and advisory remediation guidance.
+\subsection{Scope and Threat Model}
+The initial scope is an AWS account containing EC2, S3, IAM, VPC/security-group, RDS, Secrets Manager, and CloudTrail configuration metadata. The framework assumes read-only collection credentials and evaluates only the resources made visible by those credentials. The threat model begins with an external or authenticated actor at a documented entry point and considers only transitions supported by collected configuration evidence. It does not assert an initial compromise, credential theft, exploit availability, or successful lateral movement unless those preconditions are explicitly represented and independently reviewed.
+
+\subsection{Architecture and Graph Schema}
+The proposed pipeline contains five stages. First, an asset collector retrieves versioned AWS metadata. Second, a configuration analyzer evaluates versioned rules derived from documented security guidance. Third, a graph builder represents assets and supported relationships as typed nodes and edges. Fourth, a candidate-path engine searches the graph under the threat model. Finally, a reporting component presents findings, path evidence, prioritisation rationale, and advisory remediation guidance. Table~\ref{tab:schema} defines the minimum graph schema.
 
 \begin{figure}[t]
 \centering
@@ -43,18 +46,52 @@ The proposed pipeline contains five stages. First, an asset collector retrieves 
 \label{fig:architecture}
 \end{figure}
 
-\subsection{Candidate Paths and Contextual Prioritisation}
-A graph edge represents a documented relationship or security-relevant condition; it does not independently prove exploitability. A candidate path is an ordered sequence of graph edges together with the required attacker capabilities, configuration conditions, and supporting findings. Paths that lack sufficient evidence are reported as incomplete or invalid rather than as proven exploitation chains.
+\begin{table}[t]
+\caption{Minimum Proposed Graph Schema}
+\label{tab:schema}
+\centering
+\footnotesize
+\begin{tabular}{p{0.26\columnwidth} p{0.64\columnwidth}}
+\toprule
+Element & Required attributes or semantics \\
+\midrule
+Nodes & AWS resource, identity, policy, security finding, network boundary, or data asset; each has an account, region, source timestamp, and evidence identifier. \\
+Edges & Typed relationship such as \emph{attached-to}, \emph{permits}, \emph{can-reach}, \emph{can-assume}, \emph{stores}, or \emph{has-finding}; every edge identifies its source metadata. \\
+Findings & Rule identifier, affected node, observed evidence, severity mapping, and collection time. \\
+Path record & Ordered edges, entry condition, required preconditions, target, supporting findings, and review status. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Candidate-Path Analysis and Prioritisation}
+A graph edge represents a documented relationship or security-relevant condition; it does not independently prove exploitability. A candidate path is a bounded, loop-free sequence from a documented entry condition to a target asset. The engine will enumerate at most $k$ paths with a maximum depth $d$, reject paths with a missing required precondition, and retain evidence for every edge. It therefore performs bounded candidate-path discovery rather than claiming exhaustive enumeration of all attack paths.
 
 The proposed prioritisation score is a transparent heuristic:
 \begin{equation}
 R = \alpha S + \beta C + \gamma P + \delta E,
 \label{eq:risk}
 \end{equation}
-where $S$ is normalised finding severity, $C$ is asset criticality, $P$ is candidate-path context, and $E$ is exposure. The weights and component definitions must be documented before evaluation, and sensitivity analysis is required before the score is interpreted as more than a heuristic.
+where all components are normalised to $[0,1]$: $S$ is documented finding severity, $C$ is asset criticality, $P$ is evidence-supported candidate-path context, and $E$ is externally reachable exposure. The non-negative weights sum to one and will be fixed before evaluation. Exposure is excluded from $C$ to avoid double counting. $R$ is a prioritisation score, not an estimated probability of compromise; sensitivity analysis will report how ranking changes under alternative weights.
 
-\subsection{LLM-Assisted Reporting}
-The reporting component receives only approved, evidence-bounded findings, graph relationships, and remediation context. It must distinguish observed evidence from assumptions, link each recommendation to relevant findings, and require human review. Prompt engineering cannot guarantee accuracy or prevent hallucinations; the component is therefore advisory and must be evaluated for evidence consistency, technical accuracy, clarity, and actionability.
+\subsection{LLM-Assisted Reporting Contract}
+The reporting component receives only approved, evidence-bounded findings, graph relationships, and remediation context. Each generated report must distinguish observed evidence from assumptions, identify missing preconditions, link each recommendation to relevant findings, and state that human review is required. Prompt engineering cannot guarantee accuracy or prevent hallucinations; the component is advisory and will be evaluated for evidence consistency, technical accuracy, clarity, and actionability. It must not automatically execute remediation or receive unapproved sensitive data.
+
+\begin{table}[t]
+\caption{Claim-to-Evidence Map for Evaluation}
+\label{tab:claims}
+\centering
+\footnotesize
+\begin{tabular}{p{0.28\columnwidth} p{0.57\columnwidth}}
+\toprule
+Claim & Required evaluation evidence and limitation \\
+\midrule
+Finding detection & Scenario ground truth, normalised scan output, and finding-level precision/recall; limited to selected rules and scenarios. \\
+Candidate-path quality & Expected-path catalogue, edge evidence, and independent path review; graph connectivity alone is insufficient. \\
+Prioritisation & Predefined reference ranking and sensitivity analysis; $R$ is a heuristic, not compromise probability. \\
+LLM-assisted reporting & Human rubric for evidence consistency, accuracy, clarity, and actionability; output remains advisory. \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Controlled Evaluation Design}
 The proposed evaluation uses an isolated, authorised, non-production AWS account. All resources will be tagged, synthetic or non-sensitive data will be used, least-privilege roles and budget alarms will be configured, and every scenario will have a verified cleanup record. Intentionally weak configurations will remain within the defined laboratory boundary and will not be exposed to the public Internet.
