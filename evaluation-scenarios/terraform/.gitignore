@@ -1,0 +1,10 @@
+# Terraform state and local configuration may contain account metadata.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+crash.log
+
+# Keep the documented example configuration.
+!terraform.tfvars.example

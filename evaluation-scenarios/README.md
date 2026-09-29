@@ -18,7 +18,9 @@ This directory is the source of truth for the controlled AWS evaluation catalogu
 - `scripts/validate_catalog.py` — dependency-free validation of the two JSON files.
 - `scripts/run_local_scenarios.py` — safe in-memory fixture validation using the backend attack-graph classes; it never calls AWS.
 - `tests/test_local_scenarios.py` — automated local-fixture tests for S1--S6.
-- `terraform/` — reserved for reviewed, tagged, non-production AWS infrastructure.
+- `terraform/` — reviewed, tagged, non-production baseline infrastructure. Do not apply it before following `runbooks/cloud-deployment.md`.
+- `iam/` — policy templates for reviewed scenario identities; templates are not ready to attach until all placeholders are replaced and validated in the IAM console.
+- `runbooks/` — deployment and cleanup prerequisites.
 - `evidence/` — local, untracked-by-convention location for execution records. Do not place secrets or sensitive data here.
 
 ## Scenario lifecycle

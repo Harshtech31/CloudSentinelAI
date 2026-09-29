@@ -1,0 +1,6 @@
+# Copy this file to terraform.tfvars locally. Do not commit terraform.tfvars.
+aws_region      = "ap-south-2"
+aws_profile     = "cloudsentinel-provisioner"
+owner           = "Harshith"
+cleanup_date    = "REPLACE_WITH_YYYY-MM-DD"
+scenario_suffix = "lab"
