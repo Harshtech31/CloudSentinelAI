@@ -289,7 +289,7 @@ The existing wording in Chapters 7, 10, and 11 mainly supports the proposal/desi
 
 ## Phase 8 — Build and validate the controlled AWS scenario catalogue
 
-This phase upgrades the work from a design/proposal thesis to an implementation/evaluation thesis **only after** the listed scenarios are implemented, executed, and documented with reproducible evidence.
+This phase upgrades the work from a design/proposal thesis to an implementation/evaluation thesis **only after** the listed scenarios are implemented, executed, and documented with reproducible evidence. The versioned source of truth is the root-level `evaluation-scenarios/` directory: `catalog.json` defines the scenario boundaries, `ground-truth/catalog.json` records the expected labels and path conditions, and `scripts/validate_catalog.py` validates catalogue structure without accessing AWS.
 
 ### Prerequisites
 

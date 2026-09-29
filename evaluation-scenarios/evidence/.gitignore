@@ -1,0 +1,4 @@
+# Evidence may contain environment metadata or sensitive scan output.
+# Keep this directory in the repository but do not commit execution artifacts.
+*
+!.gitignore

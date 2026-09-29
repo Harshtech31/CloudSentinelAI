@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Controlled, non-production evaluation of CloudSentinel findings, candidate paths, prioritisation, and LLM-assisted reports.",
+  "safety_requirements": [
+    "authorised_non_production_aws_account",
+    "least_privilege_experiment_roles",
+    "synthetic_or_non_sensitive_data_only",
+    "resource_tags_project_owner_scenario_cleanup_date",
+    "budget_alarm_and_cleanup_checklist",
+    "no_public_exposure_of_intentionally_weak_workloads"
+  ],
+  "scenarios": [
+    {
+      "id": "S1",
+      "name": "Public S3 storage exposure",
+      "status": "design",
+      "focus": ["finding_detection", "evidence_capture", "remediation_guidance"],
+      "deployment_boundary": "Test-only bucket in the authorised non-production account.",
+      "ground_truth_file": "ground-truth/catalog.json"
+    },
+    {
+      "id": "S2",
+      "name": "Overly permissive IAM policy",
+      "status": "design",
+      "focus": ["finding_detection", "identity_relationships"],
+      "deployment_boundary": "Dedicated test principal with no production access.",
+      "ground_truth_file": "ground-truth/catalog.json"
+    },
+    {
+      "id": "S3",
+      "name": "Insecure network configuration",
+      "status": "design",
+      "focus": ["finding_detection", "reachability_preconditions"],
+      "deployment_boundary": "Laboratory-only security-group condition; no public Internet exposure of a weak workload.",
+      "ground_truth_file": "ground-truth/catalog.json"
+    },
+    {
+      "id": "S4",
+      "name": "Disabled CloudTrail logging",
+      "status": "design",
+      "focus": ["finding_detection", "remediation_guidance"],
+      "deployment_boundary": "Dedicated test account and recorded time window only.",
+      "ground_truth_file": "ground-truth/catalog.json"
+    },
+    {
+      "id": "S5",
+      "name": "Multi-stage candidate path",
+      "status": "design",
+      "focus": ["candidate_path_quality", "edge_evidence", "contextual_prioritisation"],
+      "deployment_boundary": "Test EC2, test IAM role, test Secrets Manager access, and non-sensitive S3 data only.",
+      "ground_truth_file": "ground-truth/catalog.json"
+    },
+    {
+      "id": "S6",
+      "name": "SSRF-to-IAM credential-access candidate path",
+      "status": "design",
+      "focus": ["candidate_path_preconditions", "identity_relationships", "path_invalidity_conditions"],
+      "deployment_boundary": "Instrumented non-production test service only; no production credentials, sensitive data, or public exposure.",
+      "ground_truth_file": "ground-truth/catalog.json"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "review_status": "draft_requires_pre_deployment_review",
+  "scenarios": [
+    {
+      "id": "S1",
+      "expected_findings": ["storage_public_access"],
+      "negative_controls": ["private_test_bucket"],
+      "expected_candidate_paths": [],
+      "forbidden_candidate_paths": ["unsupported_identity_or_network_transition"],
+      "required_evidence": ["sanitised_bucket_policy", "finding_output", "baseline_output", "cleanup_record"]
+    },
+    {
+      "id": "S2",
+      "expected_findings": ["overly_permissive_test_iam_policy"],
+      "negative_controls": ["least_privilege_test_policy"],
+      "expected_candidate_paths": ["test_principal_to_authorised_test_resource_when_supported_by_policy_evidence"],
+      "forbidden_candidate_paths": ["access_not_supported_by_effective_policy"],
+      "required_evidence": ["sanitised_policy_document", "finding_output", "graph_export", "cleanup_record"]
+    },
+    {
+      "id": "S3",
+      "expected_findings": ["laboratory_security_group_exposure"],
+      "negative_controls": ["restricted_test_security_group"],
+      "expected_candidate_paths": ["entry_condition_to_test_workload_only_when_reachability_evidence_exists"],
+      "forbidden_candidate_paths": ["path_without_entry_condition_or_reachability_evidence"],
+      "required_evidence": ["sanitised_security_group_configuration", "reachability_model", "finding_output", "cleanup_record"]
+    },
+    {
+      "id": "S4",
+      "expected_findings": ["cloudtrail_disabled_in_test_account"],
+      "negative_controls": ["cloudtrail_enabled_baseline"],
+      "expected_candidate_paths": [],
+      "forbidden_candidate_paths": ["path_inferred_solely_from_logging_state"],
+      "required_evidence": ["sanitised_cloudtrail_status", "finding_output", "restoration_record"]
+    },
+    {
+      "id": "S5",
+      "expected_findings": ["test_network_condition", "test_iam_permission_condition", "test_data_access_condition"],
+      "negative_controls": ["missing_required_edge_precondition"],
+      "expected_candidate_paths": ["documented_entry_condition_to_test_target_with_evidence_for_every_edge"],
+      "forbidden_candidate_paths": ["path_with_missing_or_unverified_edge_precondition"],
+      "required_evidence": ["sanitised_resource_inventory", "graph_export", "path_edge_evidence", "independent_path_review", "cleanup_record"]
+    },
+    {
+      "id": "S6",
+      "expected_findings": ["instrumented_test_service_condition", "test_identity_permission_condition"],
+      "negative_controls": ["metadata_access_or_identity_precondition_absent"],
+      "expected_candidate_paths": ["candidate_path_only_when_all_documented_service_and_identity_preconditions_hold"],
+      "forbidden_candidate_paths": ["path_claimed_without_all_documented_preconditions"],
+      "required_evidence": ["approved_scenario_design", "sanitised_configuration_snapshot", "graph_export", "independent_path_review", "cleanup_record"]
+    }
+  ]
+}
