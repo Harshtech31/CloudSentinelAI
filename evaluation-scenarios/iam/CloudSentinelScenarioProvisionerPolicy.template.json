@@ -82,6 +82,39 @@
       }
     },
     {
+      "Sid": "TagNewEvaluationNetworkResources",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": [
+        "arn:aws:ec2:ap-south-2:*:vpc/*",
+        "arn:aws:ec2:ap-south-2:*:security-group/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "ec2:CreateAction": [
+            "CreateVpc",
+            "CreateSecurityGroup"
+          ],
+          "aws:RequestedRegion": "ap-south-2",
+          "aws:RequestTag/Project": "CloudSentinel",
+          "aws:RequestTag/Environment": "Evaluation",
+          "aws:RequestTag/Owner": "Harshith"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "Environment",
+            "Owner",
+            "CleanupDate",
+            "ManagedBy",
+            "Scenario",
+            "SafetyBoundary",
+            "Name"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "ManageTaggedEvaluationNetworkResources",
       "Effect": "Allow",
       "Action": [

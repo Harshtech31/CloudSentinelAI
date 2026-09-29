@@ -70,7 +70,7 @@ resource "aws_iam_role" "scenario_s2_s5" {
   assume_role_policy = data.aws_iam_policy_document.scenario_role_trust.json
 
   tags = {
-    Scenario       = "S2,S5"
+    Scenario       = "S2-S5"
     SafetyBoundary = "TestBucketOnly"
   }
 }
