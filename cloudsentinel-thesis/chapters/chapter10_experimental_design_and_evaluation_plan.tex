@@ -78,7 +78,9 @@ To evaluate the framework under realistic conditions, several cloud environments
 \item
   \textbf{Scenario 4 -- Disabled Logging:} AWS CloudTrail logging will be disabled. Expected Outcome: Identify reduced visibility, explain the impact on forensic investigations, and recommend enabling centralized logging.\\
 \item
-  \textbf{Scenario 5 -- Multi-Stage Attack Chain:} A realistic attack chain will be constructed by combining a public EC2 instance, weak Security Group, excessive IAM permissions, access to AWS Secrets Manager, and sensitive S3 bucket. Expected Outcome: Generate a complete attack graph demonstrating how an attacker could move from the exposed EC2 instance to sensitive data.
+  \textbf{Scenario 5 -- Multi-Stage Candidate Path:} A controlled test case will combine an EC2 workload, a restricted test security group, a deliberately over-permissive test IAM role, test-only Secrets Manager access, and a non-sensitive S3 bucket. Expected Outcome: Generate and document a candidate path with the evidence and preconditions required at each step; it will not be presented as proof of exploitation.\\
+\item
+  \textbf{Scenario 6 -- SSRF-to-IAM Credential-Access Candidate Path:} A deliberately instrumented, non-production test service will simulate application-to-metadata access in an isolated account. No real sensitive data, production credentials, or public exposure will be used. Expected Outcome: Identify the configuration and identity preconditions required for a candidate SSRF-to-IAM credential-access path, or document why the path is invalid.
 \end{itemize}
 
 \subsection{10.5 Baseline Tools for Comparison}
@@ -114,9 +116,13 @@ ScoutSuite & \(\checkmark\) & Partial & \(\times\) & \(\times\) \\
 CloudSentinel AI & \(\checkmark\) & \(\checkmark\) & \(\checkmark\) & \(\checkmark\) \\
 \end{longtable}
 
-\subsection{10.6 Evaluation Metrics}
+\subsection{10.6 Evaluation Units and Metrics}
 
-The performance of CloudSentinel AI will be assessed using quantitative and qualitative evaluation metrics.
+The proposed evaluation separates findings, candidate paths, and explanations rather than treating them as one accuracy measure. A \emph{finding} is one rule violation attached to an AWS resource. A \emph{candidate path} is one ordered sequence of graph edges with documented preconditions. A \emph{consolidated alert} is one grouped report representing one or more related findings associated with the same candidate path or asset context. The evaluation will state which unit applies to every reported metric.
+
+For finding-level detection, true positives, false positives, true negatives, and false negatives will be determined against a scenario-specific ground-truth catalogue. Precision, recall, and F1 will apply only to this labelled finding set. Candidate-path assessment will use an independently reviewed expected-path catalogue and will report exact matches, partial matches, and invalid paths separately. Prioritisation will be evaluated against a pre-defined expert or rule-based reference ranking. Alert reduction, if measured, will use the number of consolidated alerts divided by the number of normalised baseline findings for the same scenario and configuration.
+
+The proposed framework will be assessed using quantitative and qualitative evaluation metrics.
 
 \subsubsection{10.6.1 Detection Metrics}
 
@@ -200,7 +206,11 @@ The performance of CloudSentinel AI will be assessed using quantitative and qual
   Actionability of remediation guidance
 \end{itemize}
 
-\subsection{10.7 Experimental Workflow}
+\subsection{10.7 AWS Safety, Cost, and Cleanup Protocol}
+
+All future experiments will run only in isolated, authorised, non-production AWS account(s). Test roles will follow least privilege, all data will be synthetic or non-sensitive, and every experimental resource will carry project and owner tags. Budget alarms, service quotas, and a written teardown checklist will be configured before deployment. Intentionally weak configurations will remain inside the defined laboratory boundary and will not be exposed to the public Internet. The researcher will record creation and cleanup dates, verify deletion of all resources, and retain no credentials or sensitive outputs in the thesis repository.
+
+\subsection{10.8 Experimental Workflow}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -227,11 +237,11 @@ The performance of CloudSentinel AI will be assessed using quantitative and qual
   Analyze the findings and summarize the performance of the proposed framework.
 \end{enumerate}
 
-\subsection{10.8 Data Analysis Strategy}
+\subsection{10.9 Data Analysis Strategy}
 
 The collected experimental data will be analyzed using descriptive statistics and comparative analysis. This includes comparison of detection rates, attack path identification, contextual risk prioritization effectiveness, execution times, and usefulness of AI-generated explanations.
 
-\subsection{10.9 Threats to Validity}
+\subsection{10.10 Threats to Validity}
 
 \begin{itemize}
 \tightlist
@@ -245,13 +255,13 @@ The collected experimental data will be analyzed using descriptive statistics an
   \textbf{Conclusion Validity:} Performance measurements may vary with hardware specifications, cloud environment size, and network conditions.
 \end{itemize}
 
-\subsection{10.10 Expected Outcomes}
+\subsection{10.11 Expected Outcomes and Boundaries}
 
-CloudSentinel AI is expected to detect misconfigurations with high accuracy, generate meaningful multi-stage attack paths, prioritize risks effectively, reduce alert fatigue, and provide clear, actionable AI-generated explanations.
+The planned evaluation will determine whether the proposed framework detects the labelled test findings, generates candidate paths consistent with documented preconditions, and produces advisory explanations that reviewers judge against a stated rubric. It will not, without further real-world evidence, establish general production accuracy, operational alert reduction, or superiority over all CSPM tools.
 
-\subsection{10.11 Chapter Summary}
+\subsection{10.12 Chapter Summary}
 
-This chapter presented the experimental design and evaluation plan for validating the CloudSentinel AI framework. It defined the objectives, environment, scenarios, baseline tools, metrics, workflow, data analysis strategy, and threats to validity, establishing a structured approach for validating the research.
+This chapter presented the proposed experimental design and evaluation plan for CloudSentinel AI. It defined the environment, controlled scenarios, baseline-comparison conditions, evaluation units, metrics, workflow, safety controls, analysis strategy, and threats to validity. Any future conclusions will remain bounded by the recorded scenario catalogue and experimental configuration.
 
 \subsection{Additional Figures}
 

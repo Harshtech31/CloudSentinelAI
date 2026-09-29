@@ -35,11 +35,11 @@ This structure clearly separates business logic, APIs, infrastructure, documenta
 
 \subsection{9.2 Backend Technology Stack}
 
-The backend of CloudSentinel AI is developed using Python, leveraging the FastAPI framework. FastAPI was selected for its high performance, native support for asynchronous programming, and automated data validation features. It provides an efficient platform for handling high-concurrency requests, which is essential for scanning large cloud environments and processing complex graph-based queries.
+The proposed backend implementation uses Python and FastAPI. FastAPI was selected for its asynchronous-programming and data-validation support. These properties make it a suitable candidate for the planned API layer, but this thesis does not claim measured high-concurrency performance.
 
 \subsection{9.3 Frontend Development}
 
-The frontend is built using React.js to provide a responsive, intuitive interface for security analysts. To handle the complex visualization of cloud attack graphs, the dashboard integrates specialized libraries such as Cytoscape.js or D3.js. These tools enable the rendering of interactive nodes and edges, allowing users to zoom, pan, and filter attack paths dynamically.
+The proposed frontend uses React.js. A future dashboard may use a graph-visualization library such as Cytoscape.js or D3.js to render candidate attack paths; this is a design choice rather than an evaluated usability claim.
 
 \subsection{9.4 Database and Data Modeling}
 
@@ -57,7 +57,7 @@ The framework employs a hybrid data storage strategy:
 
 \subsection{9.5 AI and LLM Integration}
 
-The Explainable AI module integrates with Large Language Models (LLMs) through secure API interfaces. The backend processes raw graph data and rule violations, structures them into a context-rich prompt, and sends them to the LLM. The model is specifically tuned through prompt engineering to return standardized, actionable security reports, minimizing hallucinations and ensuring technical accuracy.
+The proposed LLM-assisted explanation module will send an approved, evidence-bounded representation of findings and graph relationships to an LLM API. Prompt structure may encourage standardized reports, but it cannot ensure technical accuracy or prevent hallucinations. Generated explanations and remediation guidance will therefore be advisory, linked to deterministic evidence, and subject to human review.
 
 \subsection{9.6 Infrastructure and DevOps}
 
@@ -73,7 +73,7 @@ Infrastructure is managed using containerization and Infrastructure-as-Code (IaC
 
 \subsection{9.7 API Design and Documentation}
 
-The application follows RESTful API design principles to ensure a clean interface between the backend engines and the frontend dashboard. All endpoints are secured with JSON Web Token (JWT) authentication, ensuring that only authorized users can trigger scans or view sensitive security findings. The API is documented using the OpenAPI (Swagger) specification, providing clear endpoint definitions and enabling seamless integration for future development.
+The application follows RESTful API design principles to ensure a clean interface between the backend engines and the frontend dashboard. The proposed API design uses REST conventions and is intended to use JWT-based access control and OpenAPI documentation. These are design requirements; their effectiveness must be verified before being described as implemented security controls.
 
 \subsection{9.8 Security Considerations}
 
@@ -123,7 +123,7 @@ The modular implementation enables future expansion without significant architec
 
 \subsection{9.10 Chapter Summary}
 
-This chapter described the implementation design and technology stack of CloudSentinel AI. It explained the rationale behind the selected technologies, the deployment architecture, the hybrid relational and graph data model, the REST API design, the project structure, and the security considerations that guide the implementation. The proposed implementation emphasizes modularity, scalability, and maintainability while providing a practical roadmap for developing the CloudSentinel AI framework.
+This chapter described the proposed implementation design and technology stack of CloudSentinel AI. It explained the rationale behind the selected technologies, the intended deployment architecture, the planned hybrid relational and graph data model, the API design, the project structure, and the security requirements that should guide implementation. The design provides a roadmap for developing and subsequently evaluating the CloudSentinel AI framework.
 
 \subsection{Additional Figures}
 

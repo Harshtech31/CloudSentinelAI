@@ -153,7 +153,7 @@ The validated cloud resources will be transformed into a graph representation.\\
 \end{itemize}
 
 \textbf{Phase 5 -- Attack Path Generation}\\
-The Knowledge Graph will be analyzed to identify realistic attack paths.\\
+The Knowledge Graph will be analyzed to identify candidate attack paths under the stated threat model; each path will be treated as a hypothesis requiring evidence-based validation rather than as proof of successful exploitation.\\
 \textbf{Inputs:}
 
 \begin{itemize}
@@ -284,7 +284,7 @@ The proposed framework will initially be developed and evaluated using Amazon We
 
 \subsection{7.5 Dataset}
 
-Unlike traditional machine learning research, CloudSentinel AI does not rely on a static benchmark dataset. Instead, the framework generates its dataset dynamically by collecting metadata directly from cloud resources deployed within the AWS environment. The dataset consists of:
+Unlike traditional machine learning research, CloudSentinel AI will not rely on a static benchmark dataset. Instead, the proposed evaluation will collect metadata from resources created in a controlled AWS test environment. The dataset consists of:
 
 \begin{itemize}
 \tightlist
@@ -306,7 +306,7 @@ Unlike traditional machine learning research, CloudSentinel AI does not rely on 
   Encryption Settings
 \end{itemize}
 
-This approach ensures that the evaluation reflects realistic cloud environments rather than synthetic benchmark datasets.
+This approach provides service-realistic configuration metadata, but the controlled scenarios remain constructed test cases; the study will not claim that they represent all production cloud environments.
 
 \subsection{7.6 Evaluation Metrics}
 
@@ -391,11 +391,11 @@ To validate the effectiveness of CloudSentinel AI, the proposed framework will b
   Analyst usability
 \end{itemize}
 
-Experimental results obtained from the proposed framework will be analyzed against these criteria to determine its effectiveness in improving cloud security assessment.
+If the evaluation is executed, results will be analyzed against these criteria and reported only within the scope of the controlled scenarios and baseline configurations.
 
 \subsection{7.8 Ethical Considerations}
 
-All experiments conducted as part of this research will be performed within controlled cloud environments owned or authorized for research purposes. No unauthorized access to third-party cloud environments will be attempted. The framework is intended solely for defensive cybersecurity research, cloud security assessment, and educational purposes. The research complies with responsible disclosure principles and aims to improve cloud security practices without introducing risks to production systems.
+Any future experiments will be performed only in controlled AWS account(s) owned or authorized for research. The test environment will use least-privilege roles, non-sensitive test data, resource tags, budget alarms, and a documented cleanup procedure. Intentionally vulnerable resources will not be exposed beyond the controlled laboratory boundary, and no unauthorized access to third-party environments will be attempted. The framework is intended solely for defensive research, cloud security assessment, and education.
 
 \subsection{7.9 Chapter Summary}
 

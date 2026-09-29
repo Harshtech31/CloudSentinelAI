@@ -311,10 +311,10 @@ Purpose
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Cloud Provider & Amazon Web Services (AWS) & Primary cloud platform used for experimental evaluation \\
-Region & ap-south-1 (Mumbai) \emph{(or the region you used)} & Deployment location for all AWS resources \\
-Virtual Network & Amazon VPC & Isolates and manages the experimental cloud environment \\
-Compute Service & Amazon EC2 (t3.medium) \emph{(or your instance type)} & Hosts vulnerable workloads and application services \\
+Cloud Provider & Amazon Web Services (AWS) & Proposed cloud platform for controlled evaluation \\
+Region & To be recorded before execution & Deployment location for all AWS resources \\
+Virtual Network & Amazon VPC & Planned isolation boundary for the experimental environment \\
+Compute Service & To be selected and recorded before execution & Planned host for test workloads and application services \\
 Storage Service & Amazon S3 & Stores application data and evaluates storage misconfigurations \\
 Identity Management & AWS IAM & Configures users, roles, and permission policies \\
 Database Service & Amazon RDS (PostgreSQL) & Stores relational application and experimental data \\
@@ -331,7 +331,7 @@ Table 10.1 AWS Experimental Environment Configuration
 
 \textbf{Observation:}
 
-The experimental environment was deployed on Amazon Web Services to emulate a realistic enterprise cloud infrastructure. Core AWS services---including EC2, S3, IAM, VPC, RDS, CloudTrail, and CloudWatch---were configured to create representative cloud scenarios. CloudSentinel AI was implemented using Python, FastAPI, Neo4j, PostgreSQL, and React.js, with Docker used for containerized deployment. This environment enabled the evaluation of cloud asset discovery, misconfiguration detection, attack path generation, context-aware risk assessment, and explainable AI recommendations under realistic conditions.
+The proposed experimental environment will use an isolated AWS test account to model selected cloud-security scenarios. Before execution, the study will record the region, service configuration, instance types, software versions, account isolation controls, budget alarms, resource tags, and cleanup procedure. The resulting scenarios will be controlled test cases, not claims of production realism.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
@@ -403,7 +403,7 @@ Overall Framework Execution Time & Total time required to complete a full cloud 
 Table 10.3 Performance Evaluation Metrics Used for CloudSentinel AI\\
 \textbf{Observation:}
 
-The performance of CloudSentinel AI was evaluated using metrics that assess detection accuracy, computational efficiency, contextual risk assessment, and AI-generated recommendations. Detection Rate, Precision, Recall, and F1-Score quantify the framework's ability to accurately identify cloud security issues. Execution-time metrics evaluate the efficiency of knowledge graph construction, attack graph generation, and AI-based recommendation generation. Together, these metrics provide a comprehensive evaluation of the framework's effectiveness and scalability.
+If the evaluation is executed, CloudSentinel AI will be assessed using metrics for detection coverage, computational efficiency, contextual risk assessment, and AI-generated recommendations. Detection Rate, Precision, Recall, and F1-Score quantify the framework's ability to accurately identify cloud security issues. Execution-time metrics evaluate the efficiency of knowledge graph construction, attack graph generation, and AI-based recommendation generation. Together, these metrics provide a comprehensive evaluation of the framework's effectiveness and scalability.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2500}}
@@ -439,7 +439,7 @@ S10 & Complete Enterprise Cloud Environment & Validate end-to-end framework perf
 Table 10.4 Experimental Test Scenarios and Validation Objectives\\
 \textbf{Observation:}
 
-The experimental scenarios were designed to evaluate each functional capability of CloudSentinel AI individually and collectively. Initial scenarios validate the detection of common cloud misconfigurations, while later scenarios assess relationship-aware analysis through knowledge graph modeling and attack path generation. The final scenario evaluates the complete framework by performing an end-to-end cloud security assessment, demonstrating the integration of asset discovery, graph analytics, contextual risk assessment, and explainable AI recommendations.
+The proposed scenarios are intended to examine individual and combined framework capabilities. They will test detection of selected configuration weaknesses and relationship-aware analysis through knowledge-graph modeling and candidate-path generation. Any end-to-end claim will remain limited to the controlled scenario and recorded evaluation evidence.
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 10\tabcolsep) * \real{0.1667}}
@@ -515,7 +515,7 @@ End-to-End Cloud Security Workflow & Integrated cloud asset discovery, security 
 Table 11.2 Summary of Research Contributions of CloudSentinel AI\\
 \textbf{Observation:}
 
-The research contributions of CloudSentinel AI extend beyond traditional cloud security assessment by integrating graph-based modeling, contextual risk analysis, and explainable AI within a unified framework. The proposed architecture enables comprehensive analysis of cloud environments, supports the identification of complex attack paths, and provides actionable remediation recommendations. These contributions demonstrate the framework's potential to improve cloud security assessment and provide a foundation for future research in intelligent cloud security analytics.
+The proposed research contribution is an architectural and methodological integration of graph-based modeling, contextual prioritisation, and LLM-assisted explanation. It provides a basis for future implementation and controlled evaluation; it does not yet establish improved cloud-security outcomes.
 
 \subsection{Equation 5.1}
 

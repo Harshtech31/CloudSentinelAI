@@ -2,11 +2,11 @@
 
 \subsection{11.1 Introduction}
 
-This chapter presents the expected outcomes of the proposed CloudSentinel AI framework based on the designed architecture, implementation approach, and evaluation methodology described in the preceding chapters. The anticipated results demonstrate how the framework addresses the specific limitations of existing cloud security solutions identified in Chapter 5. The expected results are organized according to the five experimental objectives defined in Chapter 10, covering misconfiguration detection, attack path generation, contextual risk prioritization, AI explanation quality, and comparative performance against baseline tools.
+This chapter presents the expected outcomes of the proposed CloudSentinel AI framework based on the designed architecture, implementation approach, and evaluation methodology described in the preceding chapters. The anticipated outcomes describe hypotheses to be tested against the controlled scenario catalogue; they are not empirical results. The expected results are organized according to the five experimental objectives defined in Chapter 10, covering misconfiguration detection, attack path generation, contextual risk prioritization, AI explanation quality, and comparative performance against baseline tools.
 
 \subsection{11.2 Expected Misconfiguration Detection Results}
 
-Based on the rule engine design and the AWS security benchmarks incorporated into the framework, CloudSentinel AI is expected to detect cloud misconfigurations across all eight target AWS services (IAM, EC2, S3, VPC, RDS, Security Groups, CloudTrail, and encryption settings) with high accuracy. The framework is anticipated to identify all categories of misconfigurations defined in the experimental scenarios, including publicly accessible S3 buckets, overly permissive IAM policies, unrestricted security groups, disabled logging, unencrypted storage, and exposed secrets.
+The proposed rule engine will be assessed against the labelled AWS scenarios defined in Chapter 10. The evaluation will report which configured finding categories are detected, missed, or incorrectly reported; it will not assume high accuracy before measurements are collected.
 
 \begin{longtable}[]{@{}lll@{}}
 \toprule\noalign{}
@@ -25,11 +25,11 @@ Multi-Stage Attack Chain & Detected via graph traversal & High \\
 
 Table 11.1: Expected Misconfiguration Detection Results per Experimental Scenario
 
-The expected detection capability is attributed to two complementary mechanisms within the framework. First, the Configuration Analyzer applies rule-based validation against CIS AWS Benchmarks and AWS Well-Architected Framework recommendations, ensuring that known misconfiguration patterns are identified with deterministic accuracy. Second, the Knowledge Graph Builder establishes relationships among discovered resources, enabling the framework to detect configuration issues that may not be apparent when resources are evaluated independently. For example, a security group that permits inbound SSH access may be classified as medium severity in isolation; however, when the Knowledge Graph reveals that the associated EC2 instance hosts a publicly accessible web application connected to an RDS database containing sensitive data, the combined configuration context elevates the overall risk assessment.
+The proposed detection design has two complementary mechanisms. First, the Configuration Analyzer will apply versioned, documented rules derived from selected CIS AWS Benchmark and AWS Well-Architected guidance. Second, the Knowledge Graph Builder will represent relationships among discovered resources so that contextual prioritisation can be assessed. Rule determinism does not itself establish detection accuracy; the evaluation will compare outputs with the labelled ground truth. For example, a security group that permits inbound SSH access may be classified as medium severity in isolation; however, when the Knowledge Graph reveals that the associated EC2 instance hosts a publicly accessible web application connected to an RDS database containing sensitive data, the combined configuration context elevates the overall risk assessment.
 
 \subsection{11.3 Expected Attack Path Generation Results}
 
-The Attack Graph Generator is expected to identify realistic multi-stage attack paths by traversing the Knowledge Graph and correlating detected misconfigurations with resource relationships. Unlike existing CSPM solutions that report isolated findings, CloudSentinel AI is anticipated to construct complete exploitation chains demonstrating how an attacker could progress from an initial entry point to sensitive organizational assets.
+The Attack Graph Generator will be evaluated for its ability to construct \emph{candidate} multi-stage paths by traversing the Knowledge Graph and correlating detected misconfigurations with resource relationships. A graph path will not be treated as a complete exploitation chain unless its required attacker capabilities and technical preconditions are independently validated.
 
 \begin{longtable}[]{@{}lll@{}}
 \toprule\noalign{}
@@ -47,7 +47,7 @@ VPC $\rightarrow$ Peering $\rightarrow$ Internal EC2 $\rightarrow$ S3 & 4 steps 
 
 Table 11.2: Expected Attack Paths Generated by CloudSentinel AI
 
-The framework is expected to generate between 5 and 15 attack paths depending on the complexity of the configured AWS environment and the number of injected misconfigurations. Each attack path is expected to include the sequence of exploited resources, the type of vulnerability or misconfiguration at each step, and the ultimate objective achievable by the attacker. The multi-stage attack chain scenario (Scenario 5) is specifically designed to produce at least one critical attack path spanning four or more steps, demonstrating the framework's capability to identify complex exploitation chains that existing tools cannot detect.
+The number, length, and validity of candidate paths will be observed and reported for each controlled scenario rather than assumed in advance. Each reported path will record its resource sequence, supporting findings, required preconditions, and review outcome. Scenario 5 and the SSRF-related scenario are intended to test multi-stage candidate-path reasoning, not to establish that other tools cannot detect equivalent relationships.
 
 \subsection{11.4 Expected Context-Aware Risk Prioritization Results}
 
@@ -60,12 +60,12 @@ Finding & Static Severity & Contextual Score & Priority Change \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Public S3 (non-sensitive) & High & Medium (0.45) & Lowered \\
-Public S3 (sensitive data) & High & Critical (0.92) & Maintained \\
-Open SSH (internal only) & Medium & Low (0.25) & Lowered \\
-Open SSH (internet-facing) & High & Critical (0.88) & Maintained \\
-Disabled CloudTrail & Medium & High (0.78) & Raised \\
-Overly permissive IAM & High & Critical (0.95) & Maintained \\
+Public S3 (non-sensitive) & High & Illustrative lower contextual priority & Hypothesized lowering \\
+Public S3 (sensitive data) & High & Illustrative higher contextual priority & Hypothesized maintenance or raising \\
+Open SSH (internal only) & Medium & Illustrative lower contextual priority & Hypothesized lowering \\
+Open SSH (internet-facing) & High & Illustrative higher contextual priority & Hypothesized maintenance or raising \\
+Disabled CloudTrail & Medium & Context-dependent priority & To be evaluated \\
+Overly permissive IAM & High & Context-dependent priority & To be evaluated \\
 \end{longtable}
 
 Table 11.3: Expected Risk Score Comparison Between Static and Contextual Assessment
@@ -96,7 +96,7 @@ For each identified attack path, the LLM module is expected to produce a structu
 
 \subsection{11.6 Expected Performance Metrics}
 
-The framework is expected to complete a full security assessment cycle within acceptable performance parameters for operational cloud environments.
+No performance target is treated as an observed result. Future measurements will report timing boundaries, cloud and host configuration, repetitions, central tendency, variability, failures, and LLM/API latency separately.
 
 \begin{longtable}[]{@{}ll@{}}
 \toprule\noalign{}
@@ -105,14 +105,13 @@ Performance Metric & Expected Value \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Asset Discovery Time (50 resources) & $<$ 30 seconds \\
-Configuration Analysis Time & $<$ 15 seconds \\
-Knowledge Graph Construction & $<$ 10 seconds \\
-Attack Path Generation & $<$ 20 seconds \\
-Risk Score Calculation & $<$ 5 seconds \\
-AI Explanation Generation & $<$ 60 seconds \\
-Total Assessment Time (50 resources) & $<$ 2 minutes \\
-Total Assessment Time (200 resources) & $<$ 8 minutes \\
+Asset Discovery Time & To be measured under documented conditions \\
+Configuration Analysis Time & To be measured under documented conditions \\
+Knowledge Graph Construction & To be measured under documented conditions \\
+Candidate Path Generation & To be measured under documented conditions \\
+Risk Score Calculation & To be measured under documented conditions \\
+LLM Explanation Generation & To be measured separately, including API latency \\
+Total Assessment Time & To be measured for each scenario size \\
 \end{longtable}
 
 Table 11.5: Expected Performance Metrics for CloudSentinel AI
@@ -121,7 +120,7 @@ The expected performance characteristics are based on the computational complexi
 
 \subsection{11.7 Expected Comparison with Baseline Tools}
 
-CloudSentinel AI is expected to demonstrate clear advantages over existing CSPM solutions across four evaluation dimensions: attack path analysis, contextual risk assessment, explainable recommendations, and alert reduction.
+This section is a documentation-based feature comparison, not a benchmark-performance result. Each baseline claim must be verified against primary documentation for a recorded product version and access date before submission.
 
 \begin{longtable}[]{@{}lllll@{}}
 \toprule\noalign{}
@@ -141,7 +140,7 @@ Remediation Guidance & Basic & Basic & Basic & AI-Generated \\
 
 Table 11.6: Expected Capability Comparison with Baseline Cloud Security Tools
 
-The expected improvement in alert reduction is particularly significant for enterprise environments. Existing CSPM tools typically generate hundreds of individual alerts for a moderately configured AWS environment, many of which represent low-priority findings. CloudSentinel AI is expected to reduce actionable alerts by approximately 60--70\% by correlating related findings into consolidated attack paths and assigning contextual risk scores that distinguish genuinely critical issues from low-impact configuration variations. This reduction directly addresses the alert fatigue problem identified as a primary research motivation in Chapter 1.
+No alert-reduction percentage is claimed before evaluation. If alert reduction is measured, the thesis will report the number of consolidated alerts divided by the number of normalised baseline findings for the same scenario, together with the exact grouping rule and baseline configuration.
 
 \subsection{11.8 Discussion}
 
@@ -159,7 +158,7 @@ The combined effect of these capabilities is expected to transform cloud securit
 
 \subsection{11.9 Chapter Summary}
 
-This chapter presented the expected outcomes of the proposed CloudSentinel AI framework across five evaluation dimensions: misconfiguration detection, attack path generation, contextual risk prioritization, AI explanation quality, and comparative performance against baseline tools. The anticipated results indicate that the framework will detect cloud misconfigurations with high accuracy, generate meaningful multi-stage attack paths, prioritize risks effectively using contextual information, provide clear and actionable AI-generated explanations, and reduce alert fatigue by correlating related findings. These outcomes are expected to demonstrate the effectiveness of the proposed framework when compared with existing cloud security solutions, validating the research hypothesis that integrating graph-based analysis with Explainable AI improves cloud security assessment.
+This chapter presented hypotheses and proposed evaluation outputs for the CloudSentinel AI framework across finding detection, candidate-path generation, contextual prioritisation, LLM-assisted explanation, and documentation-based feature comparison. The chapter does not report measured accuracy, performance, alert reduction, or superiority. Those claims require completed experiments using the protocol in Chapter 10.
 
 \subsection{Additional Figures}
 
