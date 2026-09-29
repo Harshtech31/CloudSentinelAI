@@ -114,9 +114,26 @@ S6 & SSRF-to-IAM credential-access candidate path & Identification of configurat
 \end{tabular}
 \end{table*}
 
-The evaluation distinguishes three units. A \emph{finding} is one rule violation attached to a resource. A \emph{candidate path} is an ordered graph sequence with documented preconditions. A \emph{consolidated alert} groups related findings for a shared path or asset context. Finding-level precision, recall, F1, false-positive rate, and false-negative rate will be calculated against scenario-specific ground truth. Candidate paths will be assessed as exact matches, partial matches, or invalid paths using an independently reviewed expected-path catalogue. LLM-generated reports will be assessed with a pre-defined rubric and human review.
+\subsection{Ground Truth and Units of Analysis}
+The evaluation distinguishes three units. A \emph{finding} is one rule violation attached to a resource. A \emph{candidate path} is an ordered graph sequence with documented preconditions. A \emph{consolidated alert} groups related findings for a shared path or asset context. Before each run, a scenario catalogue will record the intentional configuration state, expected findings, negative controls, expected and forbidden candidate paths, severity rationale, and permitted remediation guidance. This catalogue is the ground truth; it must be frozen before scanning and independently reviewed.
 
-CloudSentinel should be compared with selected baselines only under identical account scope, permissions, configuration, tool version, enabled checks, and execution date. Capability matrices based on vendor documentation must be labelled as documentation-based feature comparisons, not as benchmark performance results.
+\subsection{Metrics and Path Review}
+Finding-level precision, recall, F1, and false-positive rate are computed only against the labelled scenario finding set:
+\begin{equation}
+\begin{aligned}
+\mathrm{Precision}&=\frac{TP}{TP+FP},\\
+\mathrm{Recall}&=\frac{TP}{TP+FN},\\
+F1&=\frac{2TP}{2TP+FP+FN}.
+\end{aligned}
+\label{eq:metrics}
+\end{equation}
+The false-positive rate is $FP/(FP+TN)$ when negative controls define $TN$. A candidate path is an \emph{exact match} when its entry condition, ordered evidence-backed edges, target, and required preconditions match the catalogue; it is a \emph{partial match} when it represents a valid subset or superset with the difference stated; otherwise it is \emph{invalid}. Prioritisation quality will be measured against a pre-specified reference ranking, while alert reduction will be reported as consolidated alerts divided by normalised baseline findings for the same scenario. These measures must not be aggregated across units of analysis.
+
+\subsection{Execution and Baseline Protocol}
+For every scenario, the study will archive the pre-scan configuration snapshot, resource inventory, ground-truth catalogue, tool version, enabled checks, account scope, permissions, execution time, raw output, graph export, candidate-path evidence, and cleanup record. CloudSentinel and selected baselines will use the same account scope, permissions, configuration, and execution date. Findings will be normalised to the defined finding unit before comparison. Each timing measurement will use at least three non-warm-up repetitions and report the timing boundary, median, range, failures, host specification, AWS region, and any external API latency. Capability matrices based on vendor documentation will be labelled as documentation-based feature comparisons, not benchmark performance results.
+
+\subsection{LLM-Report Review}
+Each LLM-assisted report will be evaluated by at least two independent reviewers using a pre-defined rubric. The rubric scores: (i) evidence consistency, (ii) technical accuracy, (iii) clarity, and (iv) actionability. Reviewers will mark unsupported statements and unsafe recommendations separately, report agreement before adjudication, and retain the original model output and prompt version. If external participants are recruited, the study will obtain the required institutional ethics approval before data collection.
 
 \section{Discussion and Limitations}
 The proposed framework does not establish that a graph path is exploitable merely because related resources are connected. The threat model, evidence sources, path-validity rules, and score weights must be explicit. The controlled scenarios also do not represent all production environments, cloud providers, threat actors, or organisational policies. The initial scope is AWS only, and the in-memory graph design may not scale to large deployments without further engineering.
