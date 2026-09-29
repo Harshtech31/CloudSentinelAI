@@ -2,7 +2,7 @@
 
 ## Goal
 
-Prepare a defensible, internally consistent, submission-ready thesis by first resolving research-status, evidence, and methodology issues, then correcting the LaTeX structure and presentation.
+Prepare a defensible, internally consistent IEEE research paper by first resolving research-status, evidence, and methodology issues, then completing controlled evaluation and IEEE-compliant presentation. The original thesis source remains available as supporting material; the submission source is maintained separately in `ieee-paper/paper.tex`.
 
 ## Guiding decision — complete before all other work
 
@@ -64,32 +64,27 @@ The existing wording in Chapters 7, 10, and 11 mainly supports the proposal/desi
 
 ---
 
-## Phase 2 — Add required front matter and confirm university formatting
+## Phase 2 — Create the IEEE paper submission source
 
 ### Files
 
-- `main.tex`
-- new front-matter files under `chapters/` or a dedicated `frontmatter/` directory, if required
-- the official university thesis template and regulations
+- `ieee-paper/paper.tex`
+- `references.bib`
+- `IEEEtran.bst`
 
 ### Actions
 
-1. Obtain the current university template, departmental guidelines, and supervisor requirements before changing global formatting.
-2. Add all required front matter in the required sequence, which may include:
-   - abstract;
-   - keywords;
-   - declaration of originality;
-   - supervisor certificate/certificate page;
-   - acknowledgements;
-   - dedication, abbreviations, or nomenclature where required.
-3. Add an abstract that states only the supported thesis type, contribution, scope, and evidence; do not claim completed validation for a proposal.
-4. Confirm title-page requirements, margins, font, line spacing, page numbering, bibliography style, and list-of-figures/list-of-tables requirements.
+1. Use the generic two-column `IEEEtran` conference class unless the target venue provides a different official template.
+2. Maintain the IEEE paper separately from the long-form thesis source so supporting material is not lost.
+3. Use IEEE paper structure: title and author block, abstract, keywords, introduction, related work, proposed framework, evaluation design, discussion/limitations, conclusion, and references.
+4. Do not include thesis-only front matter, a table of contents, List of Figures, List of Tables, or chapter-based organisation in the IEEE submission.
+5. Keep all proposal/evaluation claims evidence-safe until Phase 8 produces reproducible results.
 
 ### Acceptance criteria
 
-- The PDF does not go directly from the title page to the table of contents unless that is explicitly permitted by the university.
-- All required front matter and approval/declaration pages are present and correctly ordered.
-- The thesis conforms to the approved university template before final formatting effort begins.
+- `ieee-paper/paper.tex` compiles with `IEEEtran` using a two-column layout.
+- The paper has a valid abstract, IEEE keywords, numbered sections, figures/tables with captions, and IEEE-style references.
+- The original thesis source remains untouched apart from evidence-correction work already completed.
 
 ---
 
