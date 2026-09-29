@@ -83,7 +83,7 @@ A.~Sabur, A.~Chowdhary, D.~Huang, and A.~Alshamrani, ``Toward scalable
 M.~Elmiger, M.~Lemoudden, N.~Pitropakis, and W.~J. Buchanan, ``Start thinking
   in graphs: Using graphs to address critical attack paths in a microsoft cloud
   tenant,'' \emph{International Journal of Information Security}, vol.~23,
-  no.~1, pp. 389--413, 2024.
+  no.~1, pp. 467--485, 2024.
 
 \bibitem{ribeiro2016lime}
 M.~T. Ribeiro, S.~Singh, and C.~Guestrin, ``Why should i trust you?: Explaining
@@ -98,17 +98,12 @@ S.~M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model
 \bibitem{xu2024llmcybersecurity}
 H.~Xu, S.~Wang, N.~Li, K.~Wang, Y.~Zhao, K.~Chen, T.~Yu, Y.~Liu, and H.~Wang,
   ``Large language models for cyber security: A systematic literature review,''
-  \emph{arXiv preprint arXiv:2405.04760}, 2024.
+  2024.
 
 \bibitem{kurniawan2022krystal}
 K.~Kurniawan, A.~Ekelhart, E.~Kiesling, G.~Quirchmayr, and A.~M. Tjoa,
   ``{KRYSTAL}: Knowledge graph-based framework for tactical attack discovery in
   audit data,'' \emph{Computers \& Security}, vol. 121, p. 102828, 2022.
-
-\bibitem{homoliak2019cloud}
-I.~Homoliak, F.~Toffalini, J.~Guarnizo, Y.~Elovici, and M.~Ochoa, ``Cloud
-  security awareness and configuration compliance,'' \emph{IEEE Communications
-  Surveys \& Tutorials}, vol.~21, no.~2, pp. 1818--1858, 2019.
 
 \bibitem{rahman2023k8smisconfig}
 A.~Rahman, S.~I. Shamim, D.~B. Bose, and R.~Pandita, ``Security

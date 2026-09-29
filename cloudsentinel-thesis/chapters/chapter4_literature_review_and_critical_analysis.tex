@@ -150,9 +150,9 @@ Graph-based cloud security analysis encompasses knowledge graph construction for
 
 \subsection{4.7 Research on Cloud Security Configuration Compliance}
 
-Automated compliance assessment is a core capability of cloud security platforms. Research in this area focuses on mapping cloud configurations to regulatory frameworks and organizational policies while reducing the manual effort required for compliance verification. Homoliak et al.~\cite{homoliak2019cloud} provide a comprehensive survey of cloud security awareness and configuration compliance, examining the relationship between security awareness metrics and configuration compliance scores across organizational cloud deployments. Rahman et al.~\cite{rahman2023k8smisconfig} conduct an empirical study of security misconfigurations in open source Kubernetes manifests, identifying common configuration errors in container orchestration environments.
+Automated configuration assessment is a core capability of cloud security platforms. Research in this area includes the analysis of anomalous AWS IAM permissions \cite{vanede2022iam} and empirical studies of configuration weaknesses in infrastructure definitions \cite{rahman2023k8smisconfig}. These works motivate systematic identification of configuration issues, while their evaluation contexts and scope must be preserved when transferring conclusions to AWS account-level assessment.
 
-While compliance assessment provides valuable baseline security evaluation, traditional compliance-focused approaches do not address attack path analysis, contextual risk evaluation, or AI-assisted remediation guidance. CloudSentinel AI extends traditional compliance assessment by incorporating contextual factors that influence the actual security impact of configuration violations, moving beyond checklist-based compliance toward risk-informed security assessment.
+Configuration assessment provides a valuable baseline, but the proposed CloudSentinel AI design additionally examines documented resource relationships, candidate attack paths, contextual prioritisation, and human-reviewed remediation guidance. These extensions are proposed research components rather than established performance improvements.
 
 \subsubsection{4.7.1 Critical Analysis of Cloud Misconfiguration Research}
 
