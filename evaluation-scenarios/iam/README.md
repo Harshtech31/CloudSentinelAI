@@ -6,7 +6,7 @@
 
 The policy is intentionally limited to the initial Terraform baseline in `../terraform/`:
 
-- S1: a named CloudSentinel evaluation S3 bucket with encryption and public-access protections;
+- S1: a named CloudSentinel evaluation S3 bucket with encryption and public-access protections, plus the read-only bucket-configuration inspection Terraform requires to reconcile that bucket;
 - S2/S5: a named test IAM role and its inline policy, limited to the evaluation bucket;
 - S3: tagged VPC and security-group resources in `ap-south-2` only.
 
