@@ -173,6 +173,46 @@
   gap: 8px;
 }
 
+.topbar-env {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ---------- Icons ---------- */
+.brand-icon {
+  width: auto;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.service-icon {
+  display: block;
+}
+
+.icon-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.icon-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  padding: 6px 12px 6px 8px;
+}
+
+.icon-chip small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;

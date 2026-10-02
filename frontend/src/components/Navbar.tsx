@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import { CloudProviderIcon } from './CloudProviderIcon';
 import { useAuth } from '../contexts/AuthContext';
 
 /**
@@ -19,7 +20,9 @@ export function Navbar() {
         </span>
         <div>
           <small>Environment</small>
-          <b>Production · AWS</b>
+          <b className="topbar-env">
+            Production · <CloudProviderIcon provider="aws" size={15} title="AWS" />
+          </b>
         </div>
       </div>
       <div className="topbar-actions">
