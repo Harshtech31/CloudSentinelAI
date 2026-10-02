@@ -1,11 +1,98 @@
+/*
+ * CloudSentinel AI — Design Tokens & Base Styles
+ * Source of truth: docs/design/dashboard-mockup.html (approved mockup,
+ * derived from thesis Figures 11.1/11.2). Every component reads these
+ * variables; do not hardcode colors in components.
+ */
+
+:root {
+  /* Brand */
+  --primary: #1e56b0;
+  --primary-dark: #17468f;
+  --primary-soft: #eaf1fc;
+
+  /* Surfaces */
+  --page: #f1f4f9;
+  --card: #ffffff;
+  --line: #dce3ef;
+  --line-soft: #e9eef7;
+
+  /* Text */
+  --ink: #1b2537;
+  --muted: #5b6b85;
+  --faint: #8b97ac;
+
+  /* Severity spectrum (load-bearing: these encode the severity scale) */
+  --critical: #dc2626;
+  --critical-bg: #fee2e2;
+  --high: #ea580c;
+  --high-bg: #ffedd5;
+  --medium: #ca9a04;
+  --medium-bg: #fef9c3;
+  --low: #16a34a;
+  --low-bg: #dcfce7;
+
+  /* Shape & depth */
+  --radius: 10px;
+  --radius-sm: 7px;
+  --shadow: 0 1px 2px rgba(27, 37, 55, 0.05), 0 4px 14px rgba(27, 37, 55, 0.05);
+
+  /* Type */
+  --font-sans: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #0b0f19;
-  color: #f1f5f9;
+  font-family: var(--font-sans);
+  background: var(--page);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
