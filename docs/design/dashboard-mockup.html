@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudSentinel AI — Dashboard Design Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#1E56B0; --primary-dark:#17468F; --primary-soft:#EAF1FC;
+    --page:#F1F4F9; --card:#FFFFFF; --line:#DCE3EF; --line-soft:#E9EEF7;
+    --ink:#1B2537; --muted:#5B6B85; --faint:#8B97AC;
+    --critical:#DC2626; --critical-bg:#FEE2E2;
+    --high:#EA580C; --high-bg:#FFEDD5;
+    --medium:#CA9A04; --medium-bg:#FEF9C3;
+    --low:#16A34A; --low-bg:#DCFCE7;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(27,37,55,.05),0 4px 14px rgba(27,37,55,.05);
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:var(--page); color:var(--ink);
+    font-size:14px; line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  :focus-visible{outline:2px solid var(--primary); outline-offset:2px; border-radius:4px}
+  button,select{font:inherit; color:inherit}
+  a{color:var(--primary); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .app{display:flex; min-height:100vh}
+
+  /* ============ SIDEBAR ============ */
+  .sidebar{
+    width:212px; flex:none; background:#fff; border-right:1px solid var(--line);
+    display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; gap:10px; align-items:center; padding:16px 16px 14px; border-bottom:1px solid var(--line-soft)}
+  .brand-mark{
+    width:38px;height:38px;border-radius:9px;flex:none;
+    background:linear-gradient(160deg,#2E6BD6,#17468F);
+    display:grid;place-items:center; color:#fff;
+  }
+  .brand-name{font-size:16.5px;font-weight:800;letter-spacing:-.2px;color:var(--primary)}
+  .brand-sub{font-size:10.5px;color:var(--muted);margin-top:1px}
+  .nav{padding:10px 8px; display:flex; flex-direction:column; gap:2px; overflow-y:auto}
+  .nav a{
+    display:flex;align-items:center;gap:10px; padding:8px 10px; border-radius:8px;
+    color:#3A465C; font-weight:500; font-size:13.5px;
+  }
+  .nav a svg{flex:none; opacity:.75}
+  .nav a:hover{background:#F3F6FC; text-decoration:none}
+  .nav a[aria-current="page"]{background:var(--primary); color:#fff; font-weight:600; box-shadow:0 2px 6px rgba(30,86,176,.35)}
+  .nav a[aria-current="page"] svg{opacity:1}
+  .side-user{
+    margin-top:auto; border-top:1px solid var(--line-soft); padding:12px 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary);font-weight:700;font-size:12px}
+  .side-user b{display:block;font-size:12.5px}
+  .side-user span{font-size:11px;color:var(--muted)}
+
+  /* ============ MAIN / TOPBAR ============ */
+  .main{flex:1; min-width:0; display:flex; flex-direction:column}
+  .topbar{
+    background:#fff; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:26px; padding:12px 22px; flex-wrap:wrap;
+    position:sticky; top:0; z-index:20;
+  }
+  .tstat{display:flex; align-items:center; gap:9px}
+  .tstat .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none}
+  .tstat small{display:block;font-size:11px;color:var(--muted)}
+  .tstat b{font-size:13.5px;font-weight:600}
+  .tstat .ok{color:var(--low)}
+  .tstat-divider{width:1px;height:26px;background:var(--line)}
+  .gauge-wrap{display:flex;align-items:center;gap:10px;margin-left:auto}
+  .gauge-num{font-size:24px;font-weight:800;color:var(--high);line-height:1}
+  .gauge-num small{font-size:13px;color:var(--faint);font-weight:600}
+  .gauge-label{font-size:11px;color:var(--muted)}
+  .risk-flag{font-size:10.5px;color:var(--high);font-weight:600}
+
+  .statusbar{
+    margin-top:auto; background:#fff; border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; gap:16px;
+    padding:9px 22px; font-size:11.5px; color:var(--muted);
+  }
+
+  /* ============ CONTENT ============ */
+  .content{padding:18px 22px 26px}
+  .view-switch{display:inline-flex; background:#fff; border:1px solid var(--line); border-radius:9px; padding:3px; margin-bottom:16px}
+  .view-switch button{
+    border:0; background:transparent; padding:6px 16px; border-radius:7px;
+    font-weight:600; font-size:12.5px; color:var(--muted); cursor:pointer;
+  }
+  .view-switch button.is-active{background:var(--primary); color:#fff; box-shadow:0 1px 4px rgba(30,86,176,.4)}
+  .view{display:none}
+  .view.is-active{display:block; animation:fadeUp .35s ease both}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .layout{display:grid; grid-template-columns:minmax(0,1fr) 296px; gap:18px; align-items:start}
+  .view.wide{padding:0}
+  .primary{min-width:0; display:flex; flex-direction:column; gap:16px}
+
+  /* KPI cards */
+  .kpis{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px}
+  .kpi{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 14px 12px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .kpi::after{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--tone,var(--primary)); opacity:.85}
+  .kpi .head{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+  .kpi .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none}
+  .kpi .label{font-size:11.5px;color:var(--muted);font-weight:500;line-height:1.25}
+  .kpi .num{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+  .kpi .sub{font-size:11px;color:var(--faint)}
+  .tone-blue{--tone:var(--primary); color:var(--primary)} .tone-blue.ic{background:var(--primary-soft)}
+  .tone-orange{--tone:var(--high); color:var(--high)} .tone-orange.ic{background:var(--high-bg)}
+  .tone-red{--tone:var(--critical); color:var(--critical)} .tone-red.ic{background:var(--critical-bg)}
+  .tone-violet{--tone:#7C3AED; color:#7C3AED} .tone-violet.ic{background:#EDE9FE}
+  .tone-green{--tone:var(--low); color:var(--low)} .tone-green.ic{background:var(--low-bg)}
+
+  /* Panels */
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+  .panel h3{font-size:13.5px; font-weight:700; margin-bottom:12px}
+  .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+  .panel-head h3{margin:0}
+  .link-sm{font-size:12px; font-weight:600}
+
+  .grid-a{display:grid; grid-template-columns:300px minmax(0,1fr) 300px; gap:16px}
+  .grid-b{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:16px}
+
+  /* Donut */
+  .donut-wrap{display:flex; flex-direction:column; gap:14px}
+  .donut{
+    width:158px;height:158px;border-radius:50%; margin:2px auto; position:relative;
+    background:conic-gradient(var(--critical) 0 16.3%, var(--high) 16.3% 51.2%, #EAB308 51.2% 83.8%, var(--low) 83.8% 100%);
+  }
+  .donut::before{content:""; position:absolute; inset:26px; background:#fff; border-radius:50%}
+  .donut-center{position:absolute; inset:0; display:grid; place-content:center; text-align:center; z-index:1}
+  .donut-center small{font-size:11px;color:var(--muted)}
+  .donut-center b{font-size:26px;font-weight:800}
+  .legend{display:flex; flex-direction:column; gap:7px}
+  .legend li{display:flex; align-items:center; gap:8px; list-style:none; font-size:12.5px}
+  .legend .sw{width:10px;height:10px;border-radius:3px;flex:none}
+  .legend b{margin-left:auto; font-weight:600}
+
+  /* Attack graph */
+  .graph-legend{display:flex; gap:16px; flex-wrap:wrap; font-size:11px; color:var(--muted)}
+  .graph-legend span{display:flex;align-items:center;gap:6px}
+  .lg-line{width:22px;height:0;border-top:2.5px solid var(--critical); border-radius:2px}
+  .lg-dash{width:22px;height:0;border-top:2px dashed #9AA7BC}
+  .lg-blue{width:22px;height:0;border-top:2px solid #6B93D6}
+  .attack-svg{width:100%; height:auto; display:block}
+  .attack-svg text{font-family:'Inter',sans-serif}
+  .node-label{font-size:10.5px; fill:#3A465C; font-weight:600}
+  .flow{stroke-dasharray:5 7; animation:march 1.1s linear infinite}
+  @keyframes march{to{stroke-dashoffset:-12}}
+  .pulse-node{transform-box:fill-box; transform-origin:center; animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.55; transform:scale(1)}50%{opacity:0; transform:scale(1.9)}}
+
+  /* Knowledge graph summary */
+  .kg-stats{display:flex; flex-direction:column; gap:10px; margin-top:8px}
+  .kg-stats .row{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px dashed var(--line-soft); padding-bottom:7px}
+  .kg-stats .row:last-child{border-bottom:0; padding-bottom:0}
+  .kg-stats small{color:var(--muted); font-size:12px}
+  .kg-stats b{font-size:18px; font-weight:800}
+  .kg-stats .crit b{color:var(--critical)}
+
+  /* Findings table */
+  table{width:100%; border-collapse:collapse; font-size:12.5px}
+  th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.6px;
+    color:var(--faint); font-weight:700; padding:7px 10px; border-bottom:1px solid var(--line);
+    background:#F7F9FD;
+  }
+  th:first-child{border-radius:8px 0 0 8px} th:last-child{border-radius:0 8px 8px 0}
+  td{padding:9px 10px; border-bottom:1px solid var(--line-soft); vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tbody tr{transition:background .15s}
+  tbody tr:hover{background:#F6F9FE}
+  .sev{
+    display:inline-block; padding:3px 9px; border-radius:6px; color:#fff;
+    font-size:10.5px; font-weight:700; letter-spacing:.3px;
+  }
+  .sev.critical{background:var(--critical)} .sev.high{background:var(--high)}
+  .sev.medium{background:#EAB308; color:#5C4700} .sev.low{background:var(--low)}
+  .chip{
+    display:inline-block; padding:2px 10px; border-radius:6px; font-size:11px; font-weight:600;
+    border:1px solid;
+  }
+  .chip.open{color:var(--critical); border-color:#F3B4B4; background:#FEF2F2}
+  .chip.review{color:#8A6D00; border-color:#E8D77A; background:#FEFCE8}
+  .score{font-weight:800; font-size:13.5px}
+  .score.bad{color:var(--critical)} .score.warn{color:var(--high)} .score.mid{color:var(--medium)}
+
+  /* Compliance bars */
+  .comp-row{margin-bottom:13px}
+  .comp-row:last-child{margin-bottom:0}
+  .comp-row .t{display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px}
+  .comp-row .t b{font-weight:600}
+  .comp-row .t span{color:var(--low); font-weight:700}
+  .track{height:7px; border-radius:99px; background:#EDF1F8; overflow:hidden}
+  .fill{height:100%; border-radius:99px; background:var(--low); width:0; transition:width 1s cubic-bezier(.22,.8,.36,1)}
+
+  /* AI recommendations */
+  .ai-grid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px}
+  .ai-card{
+    border:1px solid var(--line); border-radius:var(--radius); padding:12px;
+    display:flex; flex-direction:column; gap:8px; transition:box-shadow .2s, transform .2s;
+  }
+  .ai-card:hover{box-shadow:0 6px 18px rgba(27,37,55,.1); transform:translateY(-2px)}
+  .ai-top{display:flex; gap:9px; align-items:flex-start}
+  .ai-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--primary-soft);color:var(--primary)}
+  .ai-card h4{font-size:12px; font-weight:700; line-height:1.3}
+  .ai-meta{font-size:11px; color:var(--muted); display:flex; flex-direction:column; gap:4px; margin-top:auto}
+  .ai-meta .kv{display:flex; justify-content:space-between; gap:6px}
+  .ai-meta b{font-weight:700}
+  .rr{color:var(--low)}
+
+  /* Timeline */
+  .timeline{display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:6px 2px 2px}
+  .step{display:flex; flex-direction:column; align-items:center; min-width:104px; position:relative; padding:0 6px; text-align:center}
+  .step .dot{
+    width:24px;height:24px;border-radius:50%; background:var(--low); color:#fff;
+    display:grid; place-items:center; z-index:1; flex:none; box-shadow:0 0 0 4px #fff;
+  }
+  .step::before{content:""; position:absolute; top:12px; left:-50%; right:50%; height:2px; background:#C9D6EA}
+  .step:first-child::before{display:none}
+  .step small{font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:7px}
+  .step span{font-size:11px; font-weight:600; margin-top:2px; line-height:1.3}
+
+  .actions-row{display:flex; gap:9px; flex-wrap:wrap; margin-bottom:11px}
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:8px;
+    border:1px solid var(--line); background:#fff; font-weight:600; font-size:12.5px; cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .btn:hover{border-color:var(--primary); background:var(--primary-soft)}
+  .btn-primary{background:var(--primary); border-color:var(--primary); color:#fff; width:100%; justify-content:center}
+  .btn-primary:hover{background:var(--primary-dark)}
+
+  /* Right rail */
+  .rail{display:flex; flex-direction:column; gap:16px; position:sticky; top:76px}
+  .chip-h{
+    display:inline-block; background:var(--primary); color:#fff; font-size:10.5px;
+    font-weight:700; letter-spacing:.8px; text-transform:uppercase;
+    padding:4px 12px; border-radius:6px; margin-bottom:12px;
+  }
+  .rail-panel{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
+  .rail-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line-soft)}
+  .rail-row:last-child{border-bottom:0; padding-bottom:2px}
+  .rail-row .ic{width:28px;height:28px;border-radius:8px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;flex:none}
+  .rail-row b{display:block; font-size:19px; font-weight:800; line-height:1}
+  .rail-row small{color:var(--muted); font-size:11px; display:block}
+  .rail-row .trend{margin-left:auto}
+  .badge{
+    margin-left:auto; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:6px;
+  }
+  .badge.good{color:var(--low); background:var(--low-bg)}
+  .badge.vgood{color:#8A6D00; background:var(--medium-bg)}
+  .health-row{display:flex; align-items:center; gap:9px; padding:8px 0; border-bottom:1px dashed var(--line-soft); font-size:12.5px}
+  .health-row:last-child{border-bottom:0}
+  .health-row .ic{width:26px;height:26px;border-radius:7px;background:#F1F5FB;color:var(--primary);display:grid;place-items:center;flex:none}
+  .health-row .val{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--muted)}
+  .health-row .ok{color:var(--low); display:flex; align-items:center; gap:4px; margin-left:auto; font-size:11.5px; font-weight:600}
+  .filter{margin-bottom:11px}
+  .filter:last-child{margin-bottom:0}
+  .filter label{display:block; font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:600}
+  .filter select{
+    width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:8px;
+    background:#fff; font-size:12.5px; cursor:pointer;
+  }
+  .filter select:hover{border-color:var(--primary)}
+
+  /* ============ EVALUATION VIEW ============ */
+  .eval-block{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; margin-bottom:18px}
+  .eval-chip{
+    display:inline-block; background:var(--primary); color:#fff; font-size:11px; font-weight:700;
+    letter-spacing:.8px; text-transform:uppercase; padding:5px 14px; border-radius:6px; margin:-28px 0 14px;
+    box-shadow:0 2px 6px rgba(30,86,176,.35);
+  }
+  .eval-metrics{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px}
+  .eval-metric{border:1px solid var(--line); border-radius:var(--radius); padding:13px; text-align:center}
+  .eval-metric .ic{width:34px;height:34px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;margin:0 auto 8px}
+  .eval-metric small{display:block; color:var(--muted); font-size:11.5px}
+  .eval-metric b{font-size:23px; font-weight:800; color:var(--primary)}
+  .eval-metric b small{display:inline; font-size:12px; color:var(--faint); font-weight:600}
+  .cmp-table th{background:var(--primary); color:#fff; border-bottom:0; font-size:10px; letter-spacing:.4px}
+  .cmp-table th:first-child{border-radius:8px 0 0 0}
+  .cmp-table th:last-child{border-radius:0 8px 0 0}
+  .cmp-table td{text-align:center; font-family:var(--mono); font-size:12px}
+  .cmp-table td:first-child{text-align:left; font-family:'Inter',sans-serif; font-weight:600}
+  .cmp-table tr.hl td{background:var(--primary-soft); color:var(--primary); font-weight:700}
+  .mark-yes{color:var(--low); font-weight:700}
+  .mark-no{color:var(--critical); font-weight:700}
+  .contrib-grid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px}
+  .contrib{border:1px solid var(--line); border-radius:var(--radius); padding:13px}
+  .contrib .ck{width:26px;height:26px;border-radius:50%;background:var(--low-bg);color:var(--low);display:grid;place-items:center;margin-bottom:8px}
+  .contrib h4{font-size:12.5px; font-weight:700; margin-bottom:5px; color:var(--primary-dark)}
+  .contrib p{font-size:11.5px; color:var(--muted); line-height:1.45}
+  .highlights{display:flex; gap:0; flex-wrap:wrap}
+  .highlight{display:flex; gap:9px; align-items:center; padding:6px 18px; border-right:1px solid var(--line-soft); font-size:12px}
+  .highlight:last-child{border-right:0}
+  .highlight .ic{color:var(--primary)}
+  .highlight b{display:block; font-size:12px}
+  .highlight small{color:var(--muted); font-size:10.5px}
+
+  /* ============ GRAPH VIEW (Fig A.2) ============ */
+  .gv-grid{display:grid; grid-template-columns:minmax(0,1fr) 312px; gap:16px; align-items:start}
+  .gv-canvas{background:linear-gradient(180deg,#FBFCFE,#F4F7FC); border:1px solid var(--line); border-radius:var(--radius); position:relative; overflow:hidden}
+  .gv-toolbar{display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line-soft); background:#fff}
+  .gv-toolbar .spacer{flex:1}
+  .gv-chip{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:var(--muted); border:1px solid var(--line); border-radius:99px; padding:4px 11px; background:#fff}
+  .gv-chip .dot{width:8px;height:8px;border-radius:50%}
+  .gv-svg{width:100%; height:auto; display:block}
+  .gv-node circle.ring{fill:#fff; stroke-width:2}
+  .gv-node:hover circle.ring{stroke-width:3.5}
+  .gv-node text{font-size:9.5px; fill:#3A465C; font-weight:600}
+  .gv-node text.rs{font-size:8.5px; fill:var(--muted); font-weight:500}
+  .gv-edge{stroke:#A9B8D3; stroke-width:1.3; fill:none}
+  .gv-edge.atk{stroke:var(--critical); stroke-width:1.8; stroke-dasharray:5 4; animation:march 1.2s linear infinite}
+  .gv-side{display:flex; flex-direction:column; gap:16px}
+  .stat-tile{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .stat-tile .st{border:1px solid var(--line); border-radius:9px; padding:10px 11px; background:#fff}
+  .stat-tile small{display:block; font-size:10.5px; color:var(--muted); margin-bottom:3px}
+  .stat-tile b{font-size:19px; font-weight:800; letter-spacing:-.3px}
+  .rel-legend{display:flex; flex-direction:column; gap:6px; font-size:11.5px}
+  .rel-legend li{list-style:none; display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px dashed var(--line-soft)}
+  .rel-legend li:last-child{border-bottom:0}
+  .rel-legend .ln{width:26px; flex:none}
+  .rel-legend .ln.solid{border-top:2px solid #6B93D6}
+  .rel-legend .ln.dashed{border-top:2px dashed var(--critical)}
+  .rel-legend b{margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--faint); font-weight:500}
+
+  /* ============ ATTACK PATH VIEW (Fig A.3) ============ */
+  .ap-summary{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px}
+  .ap-chain{display:flex; gap:0; overflow-x:auto; padding:14px 4px 6px}
+  .ap-stage{flex:1; min-width:96px; position:relative; text-align:center; padding:0 4px}
+  .ap-stage::before{content:""; position:absolute; top:17px; left:calc(-50% + 16px); right:calc(50% + 16px); border-top:2.5px dashed var(--critical)}
+  .ap-stage:first-child::before{display:none}
+  .ap-stage .n{width:34px;height:34px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;margin:0 auto;font-weight:800;font-size:13px;position:relative;z-index:1;box-shadow:0 0 0 4px #fff}
+  .ap-stage.hot .n{background:var(--critical-bg); color:var(--critical)}
+  .ap-stage .nm{font-size:11px; font-weight:600; margin-top:8px; line-height:1.3}
+  .ap-stage .pc{font-family:var(--mono); font-size:10.5px; color:var(--critical); font-weight:600}
+  .ap-stage .rs{font-size:10px; color:var(--muted)}
+  .ap-detail-table td{font-family:var(--mono); font-size:11.5px; text-align:center}
+  .ap-detail-table td:first-child{text-align:left; font-family:'Inter',sans-serif; font-weight:600}
+  .ap-detail-table .crit{color:var(--critical); font-weight:700}
+  .mit-list{display:flex; flex-direction:column; gap:9px}
+  .mit{display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:9px; padding:9px 12px; background:#fff}
+  .mit .ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary);flex:none}
+  .mit b{font-size:12.5px; font-weight:600}
+  .mit small{display:block; font-size:10.5px; color:var(--muted)}
+
+  /* ============ REPORT VIEW (Fig A.4) ============ */
+  .report{background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .rp-head{display:flex; gap:22px; align-items:center; padding:20px 24px; border-bottom:2px solid var(--primary); flex-wrap:wrap}
+  .rp-head h2{font-size:21px; font-weight:800; color:var(--primary); letter-spacing:-.3px}
+  .rp-head .meta{display:grid; grid-template-columns:repeat(2,auto); gap:5px 26px; font-size:12px}
+  .rp-head .meta small{color:var(--muted); display:block; font-size:10.5px}
+  .rp-head .meta b{font-weight:600}
+  .rp-score{margin-left:auto; text-align:center}
+  .rp-score .big{font-size:34px; font-weight:800; color:var(--high); line-height:1}
+  .rp-score .big small{font-size:14px; color:var(--faint); font-weight:600}
+  .rp-score .flag{font-size:11px; font-weight:700; color:var(--high); text-transform:uppercase; letter-spacing:.5px}
+  .rp-sec{padding:18px 24px; border-top:1px solid var(--line-soft)}
+  .rp-sec>h4{font-size:11px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--primary); margin-bottom:12px; display:flex; align-items:center; gap:8px}
+  .rp-sec>h4 .i{width:18px;height:18px;border-radius:4px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:10px}
+  .rp-kpis{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:10px}
+  .rp-kpi{border:1px solid var(--line); border-radius:9px; padding:10px 8px; text-align:center}
+  .rp-kpi small{display:block; font-size:10px; color:var(--muted); line-height:1.3; margin-bottom:5px}
+  .rp-kpi b{font-size:20px; font-weight:800; letter-spacing:-.4px}
+  .rp-2col{display:grid; grid-template-columns:1.25fr 1fr; gap:22px}
+  .rp-gauge{position:relative; width:180px; margin:4px auto 0}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1380px){
+    .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .gv-grid{grid-template-columns:1fr}
+    .ap-summary{grid-template-columns:repeat(3,1fr)}
+    .rp-kpis{grid-template-columns:repeat(4,1fr)}
+    .rp-2col{grid-template-columns:1fr}
+    .grid-a{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+    .kg-panel{grid-column:1/-1}
+    .ai-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .eval-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .contrib-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media (max-width:1120px){
+    .layout{grid-template-columns:1fr}
+    .rail{position:static; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); align-items:start}
+  }
+  @media (max-width:880px){
+    .sidebar{display:none}
+    .grid-a,.grid-b{grid-template-columns:1fr}
+    .ai-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .eval-metrics,.contrib-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .topbar{gap:14px}
+    .tstat.hide-md{display:none}
+    .statusbar{flex-direction:column; gap:2px}
+  }
+  @media (max-width:560px){
+    .content{padding:14px}
+    .ai-grid{grid-template-columns:1fr}
+    .kpis{grid-template-columns:1fr 1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important; transition:none!important}
+    .fill{width:var(--w,0)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar" aria-label="Primary">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">CloudSentinel AI</div>
+        <div class="brand-sub">Enterprise Cloud Security Platform</div>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#" aria-current="page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>Dashboard</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 10-11.6 1.6A3.5 3.5 0 007 19h10.5z"/></svg>Cloud Assets</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M12 8v4M12 15h.01"/></svg>Security Findings</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.5 6h9M6.5 8l4.5 8M17.5 8L13 16"/></svg>Knowledge Graph</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5L6 17M12 7.5L18 17"/></svg>Attack Graph</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Risk Assessment</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M8.5 12l2 2 4-4.5"/></svg>Compliance</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a5 5 0 015 5c1.7 1 2.5 2.8 2.5 4.5S18.7 16 17 16.5c0 2-1.5 4-3 4.5h-4c-1.5-.5-3-2.5-3-4.5-1.7-.5-2.5-2-2.5-4S5.3 9 7 8a5 5 0 015-5z"/><path d="M12 8v8M9.5 11h5"/></svg>AI Recommendations</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Reports</a>
+      <a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h.1a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h.1a1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v.1a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Settings</a>
+    </nav>
+    <div class="side-user">
+      <div class="avatar">SA</div>
+      <div><b>SOC Analyst</b><span>Administrator</span></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;color:var(--faint)"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN ==================== -->
+  <div class="main">
+    <header class="topbar">
+      <div class="tstat">
+        <div class="ic tone-green ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+        <div><small>Current Scan Status</small><b class="ok">Completed</b></div>
+      </div>
+      <div class="tstat-divider" aria-hidden="true"></div>
+      <div class="tstat">
+        <div class="ic tone-blue ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+        <div><small>Last Scan</small><b>Today 10:35 AM</b></div>
+      </div>
+      <div class="tstat-divider hide-md" aria-hidden="true"></div>
+      <div class="tstat hide-md">
+        <div class="ic tone-violet ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 10-11.6 1.6A3.5 3.5 0 007 19h10.5z"/></svg></div>
+        <div><small>Cloud Provider</small><b>AWS</b></div>
+      </div>
+      <div class="tstat-divider hide-md" aria-hidden="true"></div>
+      <div class="tstat hide-md">
+        <div class="ic tone-orange ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div>
+        <div><small>Environment</small><b>Production</b></div>
+      </div>
+      <div class="gauge-wrap" role="img" aria-label="Overall risk score 72 out of 100, high risk">
+        <svg width="64" height="40" viewBox="0 0 64 40" aria-hidden="true">
+          <path d="M6 36 A28 28 0 0 1 58 36" fill="none" stroke="#EDF1F8" stroke-width="7" stroke-linecap="round"/>
+          <path d="M6 36 A28 28 0 0 1 50 15" fill="none" stroke="#EA580C" stroke-width="7" stroke-linecap="round"/>
+          <circle cx="50" cy="15" r="3.4" fill="#EA580C"/>
+        </svg>
+        <div>
+          <span class="gauge-label">Overall Risk Score</span>
+          <div class="gauge-num">72 <small>/ 100</small></div>
+          <span class="risk-flag">High Risk</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="view-switch" role="tablist" aria-label="Dashboard views">
+        <button id="tab-dashboard" class="is-active" role="tab" aria-selected="true" aria-controls="view-dashboard">Operations</button>
+        <button id="tab-evaluation" role="tab" aria-selected="false" aria-controls="view-evaluation">Evaluation</button>
+        <button id="tab-graph" role="tab" aria-selected="false" aria-controls="view-graph">Knowledge Graph</button>
+        <button id="tab-attackpath" role="tab" aria-selected="false" aria-controls="view-attackpath">Attack Path</button>
+        <button id="tab-report" role="tab" aria-selected="false" aria-controls="view-report">Report</button>
+      </div>
+
+      <!-- ==================== DASHBOARD VIEW (Fig 11.2) ==================== -->
+      <section id="view-dashboard" class="view is-active" role="tabpanel" aria-labelledby="tab-dashboard">
+        <div class="layout">
+          <div class="primary">
+
+            <!-- KPI ROW -->
+            <div class="kpis">
+              <div class="kpi tone-blue">
+                <div class="head"><div class="ic tone-blue ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 10-11.6 1.6A3.5 3.5 0 007 19h10.5z"/></svg></div><span class="label">Cloud Assets</span></div>
+                <div class="num" data-count="1256">1,256</div><div class="sub">Total Resources</div>
+              </div>
+              <div class="kpi tone-orange">
+                <div class="head"><div class="ic tone-orange ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 4.1L2.9 17a2 2 0 001.7 3h14.8a2 2 0 001.7-3L13.7 4.1a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div><span class="label">Misconfigurations</span></div>
+                <div class="num" data-count="43">43</div><div class="sub">Total Issues</div>
+              </div>
+              <div class="kpi tone-red">
+                <div class="head"><div class="ic tone-red ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M12 8v5M12 16.5h.01"/></svg></div><span class="label">Critical Findings</span></div>
+                <div class="num" data-count="7">7</div><div class="sub">Critical Severity</div>
+              </div>
+              <div class="kpi tone-violet">
+                <div class="head"><div class="ic tone-violet ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 17l4-4M13 10.5L17.5 7"/></svg></div><span class="label">Attack Paths</span></div>
+                <div class="num" data-count="12">12</div><div class="sub">Identified Paths</div>
+              </div>
+              <div class="kpi tone-green">
+                <div class="head"><div class="ic tone-green ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M8.5 12l2 2 4-4.5"/></svg></div><span class="label">Compliance Score</span></div>
+                <div class="num"><span data-count="91">91</span>%</div><div class="sub">Overall Compliance</div>
+              </div>
+              <div class="kpi tone-orange">
+                <div class="head"><div class="ic tone-orange ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21a9 9 0 100-18 9 9 0 000 18z"/><path d="M12 12l4-4"/></svg></div><span class="label">Average Risk Score</span></div>
+                <div class="num">72 <small style="font-size:13px;color:var(--faint)">/100</small></div><div class="sub" style="color:var(--high);font-weight:600">High Risk</div>
+              </div>
+            </div>
+
+            <!-- ROW 1: donut / attack graph / KG summary -->
+            <div class="grid-a">
+              <div class="panel">
+                <h3>Severity Distribution</h3>
+                <div class="donut-wrap">
+                  <div class="donut" role="img" aria-label="Severity donut: 7 critical, 15 high, 14 medium, 7 low">
+                    <div class="donut-center"><small>Total</small><b>43</b></div>
+                  </div>
+                  <ul class="legend">
+                    <li><span class="sw" style="background:var(--critical)"></span>Critical<b>7 <small style="color:var(--faint)">(16.3%)</small></b></li>
+                    <li><span class="sw" style="background:var(--high)"></span>High<b>15 <small style="color:var(--faint)">(34.9%)</small></b></li>
+                    <li><span class="sw" style="background:#EAB308"></span>Medium<b>14 <small style="color:var(--faint)">(32.6%)</small></b></li>
+                    <li><span class="sw" style="background:var(--low)"></span>Low<b>7 <small style="color:var(--faint)">(16.3%)</small></b></li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="panel">
+                <h3>Attack Graph Preview</h3>
+                <svg class="attack-svg" viewBox="0 0 660 236" role="img" aria-label="Attack path from Internet through public EC2 and IAM role to sensitive data">
+                  <defs>
+                    <marker id="arrR" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#DC2626"/></marker>
+                    <marker id="arrG" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#9AA7BC"/></marker>
+                  </defs>
+                  <!-- main chain edges -->
+                  <path class="flow" d="M88 62 H140" fill="none" stroke="#DC2626" stroke-width="2.4" marker-end="url(#arrR)"/>
+                  <path d="M198 62 H250" fill="none" stroke="#DC2626" stroke-width="2.4" marker-end="url(#arrR)"/>
+                  <path class="flow" d="M308 62 H360" fill="none" stroke="#DC2626" stroke-width="2.4" marker-end="url(#arrR)"/>
+                  <path d="M418 62 H470" fill="none" stroke="#DC2626" stroke-width="2.4" marker-end="url(#arrR)"/>
+                  <path class="flow" d="M528 62 H580" fill="none" stroke="#DC2626" stroke-width="2.4" marker-end="url(#arrR)"/>
+                  <!-- possible-path dashed edges -->
+                  <path d="M170 80 V150 H118 V152" fill="none" stroke="#9AA7BC" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
+                  <path d="M280 80 V152" fill="none" stroke="#9AA7BC" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
+                  <path d="M390 80 V150 H338 V152" fill="none" stroke="#9AA7BC" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
+                  <path d="M500 80 V150 H458 V152" fill="none" stroke="#9AA7BC" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrG)"/>
+                  <!-- row 1 nodes -->
+                  <g><!-- Internet -->
+                    <circle cx="62" cy="62" r="19" fill="#EAF1FC" stroke="#1E56B0" stroke-width="2"/>
+                    <circle cx="62" cy="57" r="7" fill="none" stroke="#1E56B0" stroke-width="1.8"/><path d="M55 57h14M62 50c-3 3.5-3 10.5 0 14M62 50c3 3.5 3 10.5 0 14" stroke="#1E56B0" stroke-width="1.4" fill="none"/>
+                    <text class="node-label" x="62" y="98" text-anchor="middle">Internet</text>
+                  </g>
+                  <g><!-- Public EC2 -->
+                    <rect x="152" y="46" width="36" height="32" rx="6" fill="#EAF1FC" stroke="#1E56B0" stroke-width="2"/>
+                    <rect x="161" y="55" width="18" height="14" rx="2" fill="none" stroke="#1E56B0" stroke-width="1.6"/>
+                    <path d="M157 50v-3M163 50v-3M169 50v-3M175 50v-3M157 78v3M163 78v3M169 78v3M175 78v3" stroke="#1E56B0" stroke-width="1.4"/>
+                    <text class="node-label" x="170" y="98" text-anchor="middle">Public EC2</text>
+                  </g>
+                  <g><!-- IAM Role -->
+                    <circle cx="280" cy="62" r="19" fill="#FEE2E2" stroke="#DC2626" stroke-width="2"/>
+                    <circle cx="280" cy="57" r="5" fill="none" stroke="#DC2626" stroke-width="1.7"/>
+                    <path d="M271 70c1.5-4.5 4.5-6.5 9-6.5s7.5 2 9 6.5" fill="none" stroke="#DC2626" stroke-width="1.7"/>
+                    <rect x="288" y="52" width="9" height="8" rx="1.5" fill="none" stroke="#DC2626" stroke-width="1.5"/>
+                    <text class="node-label" x="280" y="98" text-anchor="middle">IAM Role</text>
+                  </g>
+                  <g><!-- Private EC2 -->
+                    <rect x="370" y="46" width="36" height="32" rx="6" fill="#EAF1FC" stroke="#1E56B0" stroke-width="2"/>
+                    <rect x="379" y="55" width="18" height="14" rx="2" fill="none" stroke="#1E56B0" stroke-width="1.6"/>
+                    <path d="M375 50v-3M381 50v-3M387 50v-3M393 50v-3M375 78v3M381 78v3M387 78v3M393 78v3" stroke="#1E56B0" stroke-width="1.4"/>
+                    <text class="node-label" x="388" y="98" text-anchor="middle">Private EC2</text>
+                  </g>
+                  <g><!-- Amazon RDS -->
+                    <g transform="translate(499,46)">
+                      <ellipse cx="18" cy="7" rx="15" ry="6" fill="#EAF1FC" stroke="#1E56B0" stroke-width="2"/>
+                      <path d="M3 7v16c0 3.3 6.7 6 15 6s15-2.7 15-6V7" fill="#EAF1FC" stroke="#1E56B0" stroke-width="2"/>
+                      <path d="M3 15c0 3.3 6.7 6 15 6s15-2.7 15-6" fill="none" stroke="#1E56B0" stroke-width="1.4"/>
+                    </g>
+                    <text class="node-label" x="517" y="98" text-anchor="middle">Amazon RDS</text>
+                  </g>
+                  <g><!-- Sensitive Data -->
+                    <circle cx="607" cy="62" r="20" fill="#FEE2E2" class="pulse-node" stroke="none"/>
+                    <rect x="596" y="48" width="22" height="28" rx="3" fill="#fff" stroke="#DC2626" stroke-width="2"/>
+                    <path d="M601 56h12M601 61h12M601 66h8" stroke="#DC2626" stroke-width="1.6"/>
+                    <path d="M604 51v-2a4 4 0 018 0v2" fill="none" stroke="#DC2626" stroke-width="1.6"/>
+                    <text class="node-label" x="607" y="98" text-anchor="middle">Sensitive Data</text>
+                  </g>
+                  <!-- row 2 nodes -->
+                  <g transform="translate(118,168)"><!-- S3 -->
+                    <path d="M0 8c0-4 4.5-6.5 10-6.5S20 4 20 8c3 .5 4 6-1 7H1C-4 14-3 8.5 0 8z" transform="translate(0,4)" fill="#EAF1FC" stroke="#1E56B0" stroke-width="1.8"/>
+                    <text class="node-label" x="10" y="34" text-anchor="middle">S3 Bucket</text>
+                  </g>
+                  <g transform="translate(268,168)"><!-- Lambda -->
+                    <path d="M4 4h5l8 24h-5L4 4zM20 4h6l-4 10-3-10z" transform="translate(0,4)" fill="#EAF1FC" stroke="#1E56B0" stroke-width="1.8"/>
+                    <text class="node-label" x="12" y="34" text-anchor="middle">Lambda</text>
+                  </g>
+                  <g transform="translate(338,166)"><!-- Secrets Manager -->
+                    <rect x="2" y="6" width="26" height="20" rx="4" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.8"/>
+                    <circle cx="10" cy="14" r="2.6" fill="none" stroke="#DC2626" stroke-width="1.6"/><path d="M10 16.5v4" stroke="#DC2626" stroke-width="1.6"/>
+                    <path d="M17 12h7M17 16h7M17 20h5" stroke="#DC2626" stroke-width="1.5"/>
+                    <text class="node-label" x="15" y="36" text-anchor="middle">Secrets Manager</text>
+                  </g>
+                  <g transform="translate(458,166)"><!-- CloudTrail -->
+                    <path d="M14 2a12 12 0 11-8.5 3.5" fill="none" stroke="#DC2626" stroke-width="1.8"/>
+                    <path d="M14 7a7 7 0 11-5 2" fill="none" stroke="#DC2626" stroke-width="1.8"/>
+                    <circle cx="14" cy="14" r="2.4" fill="#DC2626"/>
+                    <text class="node-label" x="15" y="36" text-anchor="middle">CloudTrail</text>
+                  </g>
+                </svg>
+                <div class="graph-legend" style="margin-top:10px; border-top:1px solid var(--line-soft); padding-top:10px">
+                  <span><span class="lg-line"></span>Attack Path</span>
+                  <span><span class="lg-dash"></span>Possible Path</span>
+                  <span><span class="lg-blue"></span>Normal Connection</span>
+                </div>
+              </div>
+
+              <div class="panel kg-panel">
+                <h3>Knowledge Graph Summary</h3>
+                <svg viewBox="0 0 260 130" style="width:100%;height:auto" role="img" aria-label="Knowledge graph network visualization">
+                  <g stroke="#B9C8E4" stroke-width="1.2">
+                    <path d="M40 40L90 28M90 28L150 44M150 44L205 30M40 40L70 82M70 82L130 70M130 70L150 44M130 70L185 95M185 95L205 30M185 95L225 70M70 82L35 108M130 70L108 112M108 112L160 112M160 112L185 95M90 28L60 14M150 44L178 16M205 30L232 16M35 108L18 84M225 70L244 96"/>
+                  </g>
+                  <g fill="#5B7FC7">
+                    <circle cx="40" cy="40" r="5"/><circle cx="90" cy="28" r="4"/><circle cx="205" cy="30" r="6"/><circle cx="70" cy="82" r="5"/><circle cx="130" cy="70" r="4"/><circle cx="185" cy="95" r="5.5"/><circle cx="35" cy="108" r="4"/><circle cx="108" cy="112" r="3.5"/><circle cx="160" cy="112" r="4"/><circle cx="225" cy="70" r="4.5"/><circle cx="60" cy="14" r="3.5"/><circle cx="178" cy="16" r="4"/><circle cx="232" cy="16" r="3"/><circle cx="18" cy="84" r="3"/><circle cx="244" cy="96" r="3.5"/>
+                  </g>
+                  <circle cx="150" cy="44" r="12" fill="#1E56B0" opacity=".18"/>
+                  <circle cx="150" cy="44" r="8" fill="#1E56B0"/>
+                </svg>
+                <div class="kg-stats">
+                  <div class="row"><small>Nodes</small><b data-count="245">245</b></div>
+                  <div class="row"><small>Relationships</small><b data-count="690">690</b></div>
+                  <div class="row crit"><small>Critical Paths</small><b data-count="12">12</b></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 2: findings / compliance -->
+            <div class="grid-b">
+              <div class="panel">
+                <div class="panel-head"><h3>Top Security Findings</h3></div>
+                <table>
+                  <thead><tr><th>Severity</th><th>Resource</th><th>Issue</th><th>Risk Score</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="sev critical">Critical</span></td><td>Public S3 Bucket</td><td>Public Read Enabled</td><td><span class="score bad">9.8</span></td><td><span class="chip open">Open</span></td></tr>
+                    <tr><td><span class="sev high">High</span></td><td>Security Group</td><td>SSH Open to Internet (0.0.0.0/0)</td><td><span class="score bad">8.9</span></td><td><span class="chip open">Open</span></td></tr>
+                    <tr><td><span class="sev high">High</span></td><td>IAM Role</td><td>Administrator Access Policy Attached</td><td><span class="score warn">8.6</span></td><td><span class="chip open">Open</span></td></tr>
+                    <tr><td><span class="sev medium">Medium</span></td><td>IAM Policy</td><td>Wildcard Permissions (*)</td><td><span class="score mid">6.5</span></td><td><span class="chip review">Review</span></td></tr>
+                    <tr><td><span class="sev medium">Medium</span></td><td>EBS Volume</td><td>Encryption Disabled</td><td><span class="score mid">5.4</span></td><td><span class="chip review">Review</span></td></tr>
+                  </tbody>
+                </table>
+                <div style="text-align:right; margin-top:10px"><a class="link-sm" href="#">View All Findings →</a></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head"><h3>Compliance Overview</h3></div>
+                <div class="comp-row"><div class="t"><b>AWS Foundational Security Best Practices</b><span>92%</span></div><div class="track"><span class="fill" data-w="92"></span></div></div>
+                <div class="comp-row"><div class="t"><b>CIS AWS Foundations Benchmark</b><span>89%</span></div><div class="track"><span class="fill" data-w="89"></span></div></div>
+                <div class="comp-row"><div class="t"><b>NIST Cybersecurity Framework (CSF)</b><span>94%</span></div><div class="track"><span class="fill" data-w="94"></span></div></div>
+                <div class="comp-row"><div class="t"><b>ISO 27001 Mapping</b><span>90%</span></div><div class="track"><span class="fill" data-w="90"></span></div></div>
+                <div style="margin-top:12px"><a class="link-sm" href="#">View Compliance Details →</a></div>
+              </div>
+            </div>
+
+            <!-- ROW 3: AI recommendations -->
+            <div class="panel">
+              <div class="panel-head"><h3>AI Recommendation Engine</h3><a class="link-sm" href="#">View All →</a></div>
+              <div class="ai-grid">
+                <div class="ai-card">
+                  <div class="ai-top"><div class="ai-ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div><h4>Restrict S3 Bucket Permissions</h4></div>
+                  <span class="sev high" style="align-self:flex-start">High</span>
+                  <div class="ai-meta"><div class="kv"><span>Estimated Effort</span><b style="color:var(--medium)">Medium</b></div><div class="kv"><span>Risk Reduction</span><b class="rr">8.7 / 10</b></div><a class="link-sm" href="#">View Details →</a></div>
+                </div>
+                <div class="ai-card">
+                  <div class="ai-top"><div class="ai-ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M5 21c1-4 3.5-6 7-6s6 2 7 6"/></svg></div><h4>Remove AdministratorAccess IAM Role</h4></div>
+                  <span class="sev critical" style="align-self:flex-start">Critical</span>
+                  <div class="ai-meta"><div class="kv"><span>Estimated Effort</span><b style="color:var(--critical)">High</b></div><div class="kv"><span>Risk Reduction</span><b class="rr">9.5 / 10</b></div><a class="link-sm" href="#">View Details →</a></div>
+                </div>
+                <div class="ai-card">
+                  <div class="ai-top"><div class="ai-ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M8.5 12l2 2 4-4.5"/></svg></div><h4>Close SSH Port 22 to the Internet</h4></div>
+                  <span class="sev high" style="align-self:flex-start">High</span>
+                  <div class="ai-meta"><div class="kv"><span>Estimated Effort</span><b style="color:var(--low)">Low</b></div><div class="kv"><span>Risk Reduction</span><b class="rr">7.8 / 10</b></div><a class="link-sm" href="#">View Details →</a></div>
+                </div>
+                <div class="ai-card">
+                  <div class="ai-top"><div class="ai-ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3M12 14v3"/></svg></div><h4>Enable EBS Encryption</h4></div>
+                  <span class="sev medium" style="align-self:flex-start">Medium</span>
+                  <div class="ai-meta"><div class="kv"><span>Estimated Effort</span><b style="color:var(--medium)">Medium</b></div><div class="kv"><span>Risk Reduction</span><b class="rr">5.6 / 10</b></div><a class="link-sm" href="#">View Details →</a></div>
+                </div>
+                <div class="ai-card">
+                  <div class="ai-top"><div class="ai-ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="4.5"/><path d="M11.2 11.8L20 3M16 7l3 3M13.5 9.5l2.5 2.5"/></svg></div><h4>Rotate IAM Credentials</h4></div>
+                  <span class="sev medium" style="align-self:flex-start">Medium</span>
+                  <div class="ai-meta"><div class="kv"><span>Estimated Effort</span><b style="color:var(--low)">Low</b></div><div class="kv"><span>Risk Reduction</span><b class="rr">6.2 / 10</b></div><a class="link-sm" href="#">View Details →</a></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ROW 4: timeline / export -->
+            <div class="grid-b">
+              <div class="panel">
+                <h3>Recent Scan Timeline</h3>
+                <div class="timeline">
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:00</small><span>Cloud Scan Started</span></div>
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:05</small><span>Asset Discovery Completed</span></div>
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:09</small><span>Knowledge Graph Generated</span></div>
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:12</small><span>Attack Graph Generated</span></div>
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:15</small><span>Risk Assessment Completed</span></div>
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:17</small><span>AI Recommendations Generated</span></div>
+                  <div class="step"><div class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M5 13l4 4L19 7"/></svg></div><small>09:20</small><span>Report Exported</span></div>
+                </div>
+              </div>
+              <div class="panel">
+                <h3>Export &amp; Actions</h3>
+                <div class="actions-row">
+                  <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"/><path d="M14 3v5h5"/></svg>PDF Report</button>
+                  <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/></svg>CSV</button>
+                  <button class="btn"><span style="font-family:var(--mono);font-weight:600">{ }</span>JSON</button>
+                  <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Email Report</button>
+                </div>
+                <button class="btn btn-primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M12 14v4M10 16h4"/></svg>Schedule Scan</button>
+              </div>
+            </div>
+
+          </div><!-- /primary -->
+
+          <!-- ==================== RIGHT RAIL ==================== -->
+          <aside class="rail" aria-label="Posture summary">
+            <div class="rail-panel">
+              <span class="chip-h">Overall Security Posture</span>
+              <div class="rail-row">
+                <div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l4-6 4 3 5-8 5 6"/></svg></div>
+                <div><small>Risk Trend (Last 7 Days)</small><b style="font-size:13px; color:var(--low)">Improving ↘</b></div>
+                <svg class="trend" width="56" height="22" viewBox="0 0 56 22" aria-hidden="true"><polyline points="2,6 10,9 18,7 26,12 34,10 42,15 54,18" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="rail-row">
+                <div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+                <div><small>Detection Accuracy</small><b><span data-count="98">98</span>%</b></div>
+                <svg class="trend" width="56" height="22" viewBox="0 0 56 22" aria-hidden="true"><polyline points="2,12 10,10 18,13 26,8 34,10 42,6 54,5" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="rail-row">
+                <div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 17l4-4M13 10.5L17.5 7"/></svg></div>
+                <div><small>Attack Path Coverage</small><b><span data-count="100">100</span>%</b></div>
+                <svg class="trend" width="56" height="22" viewBox="0 0 56 22" aria-hidden="true"><polyline points="2,14 10,12 18,13 26,9 34,8 42,7 54,4" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="rail-row">
+                <div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a5 5 0 015 5c1.7 1 2.5 2.8 2.5 4.5S18.7 16 17 16.5c0 2-1.5 4-3 4.5h-4c-1.5-.5-3-2.5-3-4.5-1.7-.5-2.5-2-2.5-4S5.3 9 7 8a5 5 0 015-5z"/></svg></div>
+                <div><small>AI Recommendation Confidence</small><b><span data-count="96">96</span>%</b></div>
+                <svg class="trend" width="56" height="22" viewBox="0 0 56 22" aria-hidden="true"><polyline points="2,10 10,13 18,9 26,11 34,7 42,9 54,6" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="rail-row">
+                <div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg></div>
+                <div><small>Average Scan Time</small><b>2.4 min</b></div>
+                <svg class="trend" width="56" height="22" viewBox="0 0 56 22" aria-hidden="true"><polyline points="2,6 10,9 18,7 26,12 34,10 42,14 54,16" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+
+            <div class="rail-panel">
+              <span class="chip-h">System Health</span>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/></svg></div>Data Sources<span class="val">12 / 12</span><span class="ok" aria-label="healthy">●</span></div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg></div>Collectors<span class="val">8 / 8</span><span class="ok" aria-label="healthy">●</span></div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="3"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></div>AI Engine<span class="ok">Online ●</span></div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.5 6h9M6.5 8l4.5 8M17.5 8L13 16"/></svg></div>Graph Engine<span class="ok">Online ●</span></div>
+            </div>
+
+            <div class="rail-panel">
+              <span class="chip-h">Quick Filters</span>
+              <div class="filter"><label for="f-account">Account</label><select id="f-account"><option>All Accounts</option><option>123456789012 (prod)</option><option>210987654321 (staging)</option></select></div>
+              <div class="filter"><label for="f-region">Region</label><select id="f-region"><option>All Regions</option><option>us-east-1</option><option>us-west-2</option><option>eu-west-1</option></select></div>
+              <div class="filter"><label for="f-time">Time Range</label><select id="f-time"><option>Last 24 Hours</option><option>Last 7 Days</option><option>Last 30 Days</option></select></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ==================== EVALUATION VIEW (Fig 11.1) ==================== -->
+      <section id="view-evaluation" class="view" role="tabpanel" aria-labelledby="tab-evaluation" hidden>
+        <div class="eval-block">
+          <span class="eval-chip">1. Performance Summary</span>
+          <div class="eval-metrics">
+            <div class="eval-metric"><div class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12l5-5"/></svg></div><small>Detection Accuracy</small><b><span data-count="98">98</span>%</b></div>
+            <div class="eval-metric"><div class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/></svg></div><small>Precision</small><b><span data-count="96">96</span>%</b></div>
+            <div class="eval-metric"><div class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.6-6.4"/><path d="M21 3v6h-6"/></svg></div><small>Recall</small><b><span data-count="95">95</span>%</b></div>
+            <div class="eval-metric"><div class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V9M12 21V3M18 21v-9"/></svg></div><small>F1 Score</small><b>95.5%</b></div>
+            <div class="eval-metric"><div class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg></div><small>Average Scan Time</small><b>2.4 <small>min</small></b></div>
+            <div class="eval-metric"><div class="ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M8.5 12l2 2 4-4.5"/></svg></div><small>Attack Path Coverage</small><b><span data-count="100">100</span>%</b></div>
+          </div>
+        </div>
+
+        <div class="eval-block">
+          <span class="eval-chip">2. Comparison Table</span>
+          <div style="overflow-x:auto">
+            <table class="cmp-table">
+              <thead><tr>
+                <th style="text-align:left">Tool / Metric</th><th>Detection Accuracy (%)</th><th>Precision (%)</th><th>Recall (%)</th><th>F1 Score (%)</th><th>Attack Path Analysis</th><th>Knowledge Graph Support</th><th>Explainable AI</th><th>Context-Aware Risk Scoring</th>
+              </tr></thead>
+              <tbody>
+                <tr class="hl"><td>CloudSentinel AI</td><td>98</td><td>96</td><td>95</td><td>95.5</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td><td class="mark-yes">✓</td></tr>
+                <tr><td>AWS Security Hub</td><td>82</td><td>78</td><td>76</td><td>77.0</td><td class="mark-no">✗</td><td class="mark-no">✗</td><td class="mark-yes">✓</td><td class="mark-no">✗</td></tr>
+                <tr><td>Amazon Inspector</td><td>88</td><td>85</td><td>83</td><td>84.0</td><td class="mark-no">✗</td><td class="mark-no">✗</td><td class="mark-yes">✓</td><td class="mark-no">✗</td></tr>
+                <tr><td>Prowler</td><td>90</td><td>87</td><td>85</td><td>86.0</td><td class="mark-yes">✓</td><td class="mark-no">✗</td><td class="mark-no">✗</td><td class="mark-no">✗</td></tr>
+                <tr><td>ScoutSuite</td><td>85</td><td>81</td><td>78</td><td>79.5</td><td class="mark-yes">✓</td><td class="mark-no">✗</td><td class="mark-no">✗</td><td class="mark-no">✗</td></tr>
+                <tr><td>Traditional CSPM</td><td>75</td><td>72</td><td>68</td><td>70.0</td><td class="mark-no">✗</td><td class="mark-no">✗</td><td class="mark-no">✗</td><td class="mark-no">✗</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:18px; align-items:start" class="eval-grid">
+          <div>
+            <div class="eval-block">
+              <span class="eval-chip">4. Key Research Contributions</span>
+              <div class="contrib-grid">
+                <div class="contrib"><div class="ck" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div><h4>Knowledge Graph-Based Analysis</h4><p>Constructs semantic relationships between cloud assets for deeper contextual understanding.</p></div>
+                <div class="contrib"><div class="ck" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div><h4>Attack Path Generation</h4><p>Automatically generates multi-stage attack paths to identify potential attack vectors.</p></div>
+                <div class="contrib"><div class="ck" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div><h4>Context-Aware Risk Assessment</h4><p>Evaluates risks based on asset criticality, exploitability, and business context.</p></div>
+                <div class="contrib"><div class="ck" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div><h4>Explainable AI Recommendations</h4><p>Provides human-readable explanations and actionable recommendations.</p></div>
+                <div class="contrib"><div class="ck" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div><h4>Integrated Cloud Security Framework</h4><p>Unifies asset discovery, analysis, risk scoring, and reporting in a single framework.</p></div>
+              </div>
+            </div>
+            <div class="eval-block" style="margin-bottom:0">
+              <span class="eval-chip">Experimental Highlights</span>
+              <div class="highlights">
+                <div class="highlight"><span class="ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/></svg></span><div><b>High Detection Accuracy</b><small>98% across all scenarios</small></div></div>
+                <div class="highlight"><span class="ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 3h-6M21 3v6"/></svg></span><div><b>Reduced False Positives</b><small>2.5% FPR vs 8–15% baselines</small></div></div>
+                <div class="highlight"><span class="ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="12" cy="12" r="2.5"/></svg></span><div><b>Comprehensive Attack Path Analysis</b><small>Multi-stage chains detected</small></div></div>
+                <div class="highlight"><span class="ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4M9 2h6"/></svg></span><div><b>Fast Scan Completion</b><small>2.4 min average</small></div></div>
+                <div class="highlight"><span class="ic" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg></span><div><b>Automated Risk Prioritization</b><small>Context-aware scoring</small></div></div>
+              </div>
+            </div>
+          </div>
+
+          <aside>
+            <div class="rail-panel" style="margin-bottom:18px">
+              <span class="chip-h">Overall Evaluation</span>
+              <div class="rail-row"><div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/></svg></div><div><small>Detection Performance</small></div><span class="badge good">Excellent</span></div>
+              <div class="rail-row"><div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="12" cy="12" r="2.5"/></svg></div><div><small>Attack Path Discovery</small></div><span class="badge good">Excellent</span></div>
+              <div class="rail-row"><div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg></div><div><small>Risk Prioritization</small></div><span class="badge good">Excellent</span></div>
+              <div class="rail-row"><div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a5 5 0 015 5c1.7 1 2.5 2.8 2.5 4.5S18.7 16 17 16.5c0 2-1.5 4-3 4.5h-4c-1.5-.5-3-2.5-3-4.5-1.7-.5-2.5-2-2.5-4S5.3 9 7 8a5 5 0 015-5z"/></svg></div><div><small>AI Recommendation Quality</small></div><span class="badge vgood">Very Good</span></div>
+              <div class="rail-row"><div class="ic" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></div><div><small>System Scalability</small></div><span class="badge vgood">Very Good</span></div>
+            </div>
+            <div class="rail-panel">
+              <span class="chip-h">Comparison Baseline</span>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15V9a2 2 0 012-2h2l3-3h2l3 3h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2z"/></svg></div>AWS Security Hub</div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>Amazon Inspector</div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>Prowler</div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></div>ScoutSuite</div>
+              <div class="health-row"><div class="ic" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h.1a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h.1a1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v.1a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></div>Traditional CSPM</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+<!-- ==================== KNOWLEDGE GRAPH VIEW (Fig A.2) ==================== -->
+      <section id="view-graph" class="view wide" role="tabpanel" aria-labelledby="tab-graph" hidden>
+  <div class="gv-grid">
+    <div class="gv-canvas">
+      <div class="gv-toolbar">
+        <span class="gv-chip"><span class="dot" style="background:var(--low)"></span>Identity</span>
+        <span class="gv-chip"><span class="dot" style="background:var(--primary)"></span>Compute</span>
+        <span class="gv-chip"><span class="dot" style="background:#EAB308"></span>Storage</span>
+        <span class="gv-chip"><span class="dot" style="background:var(--critical)"></span>Database</span>
+        <span class="gv-chip"><span class="dot" style="background:#0E7490"></span>Monitoring</span>
+        <span class="spacer"></span>
+        <span class="gv-chip"><span class="ln dashed" style="width:22px;border-top:2px dashed var(--critical)"></span>Attack relationship</span>
+      </div>
+      <svg class="gv-svg" viewBox="0 0 940 470" role="img" aria-label="Knowledge graph of the AWS environment with risk-scored nodes">
+        <!-- edges -->
+        <path class="gv-edge" d="M470 235 L330 120 M470 235 L620 110 M470 235 L300 340 M470 235 L650 350 M330 120 L200 90 M330 120 L180 180 M200 90 L110 150 M180 180 L110 150 M620 110 L760 90 M620 110 L770 180 M760 90 L850 150 M650 350 L780 330 M650 350 L760 410 M300 340 L170 380 M300 340 L410 420 M170 380 L90 430"/>
+        <path class="gv-edge atk" d="M620 110 L770 180 M770 180 L850 150"/>
+        <path class="gv-edge atk" d="M330 120 L180 180"/>
+        <path class="gv-edge atk" d="M180 180 L300 340"/>
+        <!-- core -->
+        <g class="gv-node">
+          <circle class="ring" cx="470" cy="235" r="46" stroke="#1E56B0"/>
+          <circle cx="470" cy="235" r="30" fill="#EAF1FC"/>
+          <text x="470" y="232" text-anchor="middle" font-weight="800" fill="#1E56B0">AWS Cloud</text>
+          <text class="rs" x="470" y="246" text-anchor="middle">Account 123456789012</text>
+        </g>
+        <!-- identity -->
+        <g class="gv-node">
+          <circle class="ring" cx="200" cy="90" r="34" stroke="#16A34A"/>
+          <text x="200" y="88" text-anchor="middle">IAM Role</text>
+          <text x="200" y="101" text-anchor="middle">EC2Role</text>
+          <text class="rs" x="200" y="138" text-anchor="middle">Risk 7.8 · AdminAccess</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="110" cy="150" r="27" stroke="#16A34A"/>
+          <text x="110" y="148" text-anchor="middle">IAM User</text>
+          <text x="110" y="160" text-anchor="middle">admin</text>
+          <text class="rs" x="110" y="190" text-anchor="middle">MFA disabled · 6.2</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="180" cy="180" r="27" stroke="#16A34A"/>
+          <text x="180" y="178" text-anchor="middle">IAM Policy</text>
+          <text x="180" y="190" text-anchor="middle">*</text>
+          <text class="rs" x="180" y="220" text-anchor="middle">Wildcard · 9.8</text>
+        </g>
+        <!-- compute -->
+        <g class="gv-node">
+          <circle class="ring" cx="330" cy="120" r="34" stroke="#1E56B0"/>
+          <text x="330" y="118" text-anchor="middle">EC2 Web</text>
+          <text x="330" y="131" text-anchor="middle">t3.large</text>
+          <text class="rs" x="330" y="168" text-anchor="middle">Public · SSH open · 8.7</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="620" cy="110" r="34" stroke="#1E56B0"/>
+          <text x="620" y="108" text-anchor="middle">EC2 App</text>
+          <text x="620" y="121" text-anchor="middle">m5.xlarge</text>
+          <text class="rs" x="620" y="158" text-anchor="middle">Private · 6.3</text>
+        </g>
+        <!-- network -->
+        <g class="gv-node">
+          <circle class="ring" cx="760" cy="90" r="27" stroke="#EA580C"/>
+          <text x="760" y="88" text-anchor="middle">Security</text>
+          <text x="760" y="100" text-anchor="middle">Group</text>
+          <text class="rs" x="760" y="130" text-anchor="middle">0.0.0.0/0:22 · 8.9</text>
+        </g>
+        <!-- storage -->
+        <g class="gv-node">
+          <circle class="ring" cx="170" cy="380" r="34" stroke="#CA9A04"/>
+          <text x="170" y="378" text-anchor="middle">S3 Bucket</text>
+          <text x="170" y="391" text-anchor="middle">web-assets</text>
+          <text class="rs" x="170" y="428" text-anchor="middle">Public read · 9.5</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="90" cy="430" r="25" stroke="#CA9A04"/>
+          <text x="90" y="428" text-anchor="middle">S3</text>
+          <text x="90" y="440" text-anchor="middle">backups</text>
+          <text class="rs" x="90" y="468" text-anchor="middle">Encrypted · 3.4</text>
+        </g>
+        <!-- database -->
+        <g class="gv-node">
+          <circle class="ring" cx="300" cy="340" r="34" stroke="#DC2626"/>
+          <text x="300" y="338" text-anchor="middle">RDS</text>
+          <text x="300" y="351" text-anchor="middle">mysql-prod</text>
+          <text class="rs" x="300" y="388" text-anchor="middle">Multi-AZ · 8.2</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="410" cy="420" r="27" stroke="#DC2626"/>
+          <text x="410" y="418" text-anchor="middle">DynamoDB</text>
+          <text x="410" y="430" text-anchor="middle">app-data</text>
+          <text class="rs" x="410" y="458" text-anchor="middle">On-demand · 4.5</text>
+        </g>
+        <!-- monitoring -->
+        <g class="gv-node">
+          <circle class="ring" cx="650" cy="350" r="30" stroke="#0E7490"/>
+          <text x="650" y="348" text-anchor="middle">CloudTrail</text>
+          <text x="650" y="361" text-anchor="middle">enabled</text>
+          <text class="rs" x="650" y="394" text-anchor="middle">Validation on · 2.1</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="780" cy="330" r="27" stroke="#0E7490"/>
+          <text x="780" y="328" text-anchor="middle">AWS</text>
+          <text x="780" y="340" text-anchor="middle">Config</text>
+          <text class="rs" x="780" y="370" text-anchor="middle">18 rules · 2.3</text>
+        </g>
+        <g class="gv-node">
+          <circle class="ring" cx="760" cy="410" r="27" stroke="#0E7490"/>
+          <text x="760" y="408" text-anchor="middle">Secrets</text>
+          <text x="760" y="420" text-anchor="middle">Manager</text>
+          <text class="rs" x="760" y="450" text-anchor="middle">23 secrets · 3.2</text>
+        </g>
+        <!-- highlights: attack chain nodes -->
+        <circle cx="330" cy="120" r="40" fill="none" stroke="#DC2626" stroke-width="1.6" stroke-dasharray="3 5" opacity=".7"/>
+        <circle cx="300" cy="340" r="40" fill="none" stroke="#DC2626" stroke-width="1.6" stroke-dasharray="3 5" opacity=".7"/>
+        <circle cx="770" cy="180" r="33" fill="none" stroke="#DC2626" stroke-width="1.6" stroke-dasharray="3 5" opacity=".7"/>
+      </svg>
+    </div>
+    <div class="gv-side">
+      <div class="rail-panel">
+        <span class="chip-h">Graph statistics</span>
+        <div class="stat-tile">
+          <div class="st"><small>Nodes</small><b>156</b></div>
+          <div class="st"><small>Relationships</small><b>428</b></div>
+          <div class="st" style="color:var(--critical)"><small>Critical nodes</small><b>14</b></div>
+          <div class="st" style="color:var(--high)"><small>High-risk assets</small><b>21</b></div>
+          <div class="st" style="color:var(--critical)"><small>Attack paths</small><b>18</b></div>
+          <div class="st"><small>Graph density</small><b>0.32</b></div>
+        </div>
+      </div>
+      <div class="rail-panel">
+        <span class="chip-h">Detected relationship types</span>
+        <ul class="rel-legend">
+          <li><span class="ln solid"></span>ASSUMES<b>12</b></li>
+          <li><span class="ln solid"></span>ATTACHED_TO<b>34</b></li>
+          <li><span class="ln solid"></span>CONNECTED_TO<b>48</b></li>
+          <li><span class="ln solid"></span>PROTECTS<b>21</b></li>
+          <li><span class="ln solid"></span>STORES_DATA_IN<b>16</b></li>
+          <li><span class="ln dashed"></span>CAN_ASSUME<b>9</b></li>
+          <li><span class="ln dashed"></span>CAN_REACH<b>14</b></li>
+          <li><span class="ln dashed"></span>CAN_ESCALATE<b>6</b></li>
+          <li><span class="ln dashed"></span>CAN_EXFILTRATE<b>4</b></li>
+        </ul>
+      </div>
+      <div class="rail-panel">
+        <span class="chip-h">Highest risk assets</span>
+        <div class="health-row"><div class="ic">⚠</div>IAM Policy (wildcard *)<span class="val" style="color:var(--critical);font-weight:700">9.8</span></div>
+        <div class="health-row"><div class="ic">⚠</div>S3 web-assets (public)<span class="val" style="color:var(--critical);font-weight:700">9.5</span></div>
+        <div class="health-row"><div class="ic">⚠</div>Security group (SSH)<span class="val" style="color:var(--high);font-weight:700">8.9</span></div>
+        <div class="health-row"><div class="ic">⚠</div>RDS mysql-prod<span class="val" style="color:var(--high);font-weight:700">8.2</span></div>
+        <div class="health-row"><div class="ic">ℹ</div>EC2 Web-01<span class="val">8.7</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ATTACK PATH VIEW (Fig A.3) ==================== -->
+      <section id="view-attackpath" class="view wide" role="tabpanel" aria-labelledby="tab-attackpath" hidden>
+  <div style="display:flex; flex-direction:column; gap:16px">
+    <div class="ap-summary">
+      <div class="kpi tone-violet"><div class="head"><span class="label">Total attack paths</span></div><div class="num">18</div><div class="sub">Discovered this scan</div></div>
+      <div class="kpi tone-red"><div class="head"><span class="label">Critical paths</span></div><div class="num">5</div><div class="sub">Reach sensitive data</div></div>
+      <div class="kpi tone-orange"><div class="head"><span class="label">Highest risk score</span></div><div class="num">10.0</div><div class="sub">Path #3 · exfiltration</div></div>
+      <div class="kpi tone-blue"><div class="head"><span class="label">Average risk score</span></div><div class="num">8.7</div><div class="sub">Across all paths</div></div>
+      <div class="kpi tone-red"><div class="head"><span class="label">Attack success probability</span></div><div class="num">91%</div><div class="sub">Most likely path</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Attack path #3 — External attacker to sensitive business data</h3><span class="chip open" style="font-size:11px">Critical</span></div>
+      <div class="ap-chain" role="list" aria-label="Attack chain stages">
+        <div class="ap-stage hot" role="listitem"><div class="n">1</div><div class="nm">Initial Access</div><div class="pc">95%</div><div class="rs">IGW exposed</div></div>
+        <div class="ap-stage hot" role="listitem"><div class="n">2</div><div class="nm">Remote Code Exec</div><div class="pc">90%</div><div class="rs">Risk 9.2</div></div>
+        <div class="ap-stage" role="listitem"><div class="n">3</div><div class="nm">Credential Harvest</div><div class="pc">88%</div><div class="rs">Risk 9.6</div></div>
+        <div class="ap-stage" role="listitem"><div class="n">4</div><div class="nm">Privilege Escalation</div><div class="pc">83%</div><div class="rs">Risk 8.9</div></div>
+        <div class="ap-stage" role="listitem"><div class="n">5</div><div class="nm">Cloud Enumeration</div><div class="pc">76%</div><div class="rs">Risk 8.4</div></div>
+        <div class="ap-stage" role="listitem"><div class="n">6</div><div class="nm">Lateral Movement</div><div class="pc">72%</div><div class="rs">Risk 8.8</div></div>
+        <div class="ap-stage" role="listitem"><div class="n">7</div><div class="nm">Database Access</div><div class="pc">69%</div><div class="rs">Risk 8.1</div></div>
+        <div class="ap-stage hot" role="listitem"><div class="n">8</div><div class="nm">Data Discovery</div><div class="pc">65%</div><div class="rs">Cumulative 16%</div></div>
+        <div class="ap-stage hot" role="listitem"><div class="n">9</div><div class="nm">Data Exfiltration</div><div class="pc">61%</div><div class="rs">Cumulative 10%</div></div>
+      </div>
+      <div style="margin-top:14px; border-top:1px solid var(--line-soft); padding-top:12px">
+        <table class="ap-detail-table">
+          <thead><tr><th>Metric</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead>
+          <tbody>
+            <tr><td>Stage probability</td><td>95%</td><td>90%</td><td>88%</td><td>83%</td><td>76%</td><td>72%</td><td>69%</td><td>65%</td><td>61%</td></tr>
+            <tr><td>Cumulative probability</td><td>95%</td><td>85%</td><td>75%</td><td>62%</td><td>47%</td><td>34%</td><td>24%</td><td>16%</td><td>10%</td></tr>
+            <tr><td>Impact level</td><td class="crit">High</td><td class="crit">High</td><td class="crit">High</td><td class="crit">High</td><td class="crit">High</td><td class="crit">High</td><td class="crit">Critical</td><td class="crit">Critical</td><td class="crit">Critical</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-b">
+      <div class="panel">
+        <div class="panel-head"><h3>Stage findings</h3></div>
+        <table>
+          <thead><tr><th>Stage</th><th>Resource</th><th>Misconfiguration</th><th>Confidence</th><th>Recommendation</th></tr></thead>
+          <tbody>
+            <tr><td><b>2</b></td><td class="mono">EC2-Web-01</td><td>Open SSH port (22) to 0.0.0.0/0</td><td><span class="score bad">99%</span></td><td>Close port 22, enforce SSM</td></tr>
+            <tr><td><b>3</b></td><td class="mono">EC2Role</td><td>AdministratorAccess attached</td><td><span class="score bad">97%</span></td><td>Apply least privilege</td></tr>
+            <tr><td><b>4</b></td><td class="mono">Secrets Manager</td><td>Credential exposure via role</td><td><span class="score bad">95%</span></td><td>Rotate credentials</td></tr>
+            <tr><td><b>6</b></td><td class="mono">EC2-App-01</td><td>Flat network, no segmentation</td><td><span class="score warn">94%</span></td><td>Segment subnets</td></tr>
+            <tr><td><b>7</b></td><td class="mono">mysql-prod</td><td>Sensitive DB accessible from app tier</td><td><span class="score warn">96%</span></td><td>Enforce TLS + auth</td></tr>
+            <tr><td><b>9</b></td><td class="mono">S3 reports</td><td>Bucket readable by any principal</td><td><span class="score warn">93%</span></td><td>Block public access, DLP</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Recommended mitigations</h3></div>
+        <div class="mit-list">
+          <div class="mit"><div class="ic">🔑</div><div><b>Restrict IAM role permissions</b><small>Replace AdministratorAccess with scoped policies · Critical</small></div><span class="badge good" style="margin-left:auto;color:var(--critical);background:var(--critical-bg)">35% risk ↓</span></div>
+          <div class="mit"><div class="ic">🔒</div><div><b>Close SSH port 22</b><small>SSM Session Manager instead of bastion · Critical</small></div><span class="badge good" style="margin-left:auto;color:var(--high);background:var(--high-bg)">22% risk ↓</span></div>
+          <div class="mit"><div class="ic">🗝</div><div><b>Rotate exposed secrets</b><small>Automatic rotation for RDS + app creds · High</small></div><span class="badge good" style="margin-left:auto;color:var(--high);background:var(--high-bg)">18% risk ↓</span></div>
+          <div class="mit"><div class="ic">🛡</div><div><b>Harden security groups</b><small>Remove 0.0.0.0/0 ingress, add SG referencing · Medium</small></div><span class="badge good" style="margin-left:auto">14% risk ↓</span></div>
+          <div class="mit"><div class="ic">👁</div><div><b>Enable continuous monitoring</b><small>GuardDuty + Config rules on exfil paths · Medium</small></div><span class="badge good" style="margin-left:auto">9% risk ↓</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== REPORT VIEW (Fig A.4) ==================== -->
+<section id="view-report" class="view" role="tabpanel" aria-labelledby="tab-report" hidden style="padding:18px 22px 26px">
+  <div class="report">
+    <div class="rp-head">
+      <div class="brand-mark" aria-hidden="true" style="width:52px;height:52px">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div>
+        <h2>CloudSentinel AI — Security Assessment Report</h2>
+        <div class="meta">
+          <div><small>Assessment date</small><b>October 2, 2026</b></div>
+          <div><small>Environment</small><b>Production</b></div>
+          <div><small>Cloud provider</small><b>AWS</b></div>
+          <div><small>Assessment ID</small><b class="mono">CSA-2026-00158</b></div>
+        </div>
+      </div>
+      <div class="rp-score" role="img" aria-label="Overall risk score 82 of 100, high risk">
+        <small style="color:var(--muted)">Overall security rating</small>
+        <div class="rp-gauge">
+          <svg viewBox="0 0 120 70" width="180" height="105" aria-hidden="true">
+            <path d="M12 62 A48 48 0 0 1 108 62" fill="none" stroke="#EDF1F8" stroke-width="13" stroke-linecap="round"/>
+            <path d="M12 62 A48 48 0 0 1 60 14" fill="none" stroke="#EA580C" stroke-width="13" stroke-linecap="round"/>
+            <path d="M12 62 A48 48 0 0 1 38 20" fill="none" stroke="#DC2626" stroke-width="13" stroke-linecap="round"/>
+          </svg>
+          <div style="position:absolute; inset:0; display:grid; place-content:center; text-align:center; padding-top:26px">
+            <div class="big">82 <small>/ 100</small></div>
+            <div class="flag">High risk</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-sec">
+      <h4><span class="i">1</span>Executive summary</h4>
+      <p style="max-width:860px; color:var(--muted); font-size:13px; line-height:1.6">CloudSentinel AI analyzed the cloud environment and identified several high-risk security misconfigurations. Context-aware attack path analysis discovered multiple privilege escalation opportunities that could allow an attacker to access sensitive business data. AI-generated recommendations prioritize remediation actions based on exploitability and business impact.</p>
+    </div>
+
+    <div class="rp-sec">
+      <h4><span class="i">2</span>Security overview</h4>
+      <div class="rp-kpis">
+        <div class="rp-kpi"><small>Cloud assets</small><b style="color:var(--primary)">156</b></div>
+        <div class="rp-kpi"><small>Critical findings</small><b style="color:var(--critical)">12</b></div>
+        <div class="rp-kpi"><small>High findings</small><b style="color:var(--high)">24</b></div>
+        <div class="rp-kpi"><small>Medium findings</small><b style="color:#CA9A04">37</b></div>
+        <div class="rp-kpi"><small>Attack paths</small><b style="color:#7C3AED">18</b></div>
+        <div class="rp-kpi"><small>Compliance score</small><b style="color:var(--low)">87%</b></div>
+        <div class="rp-kpi"><small>Misconfigurations</small><b>43</b></div>
+        <div class="rp-kpi"><small>Business risk</small><b style="color:var(--high)">High</b></div>
+      </div>
+    </div>
+
+    <div class="rp-sec rp-2col">
+      <div>
+        <h4><span class="i">3</span>Top critical findings</h4>
+        <table>
+          <thead><tr><th>Severity</th><th>Finding</th><th>Affected resource</th><th>Risk</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sev critical">Critical</span></td><td>Public S3 bucket</td><td class="mono">backup-bucket</td><td><span class="score bad">9.8</span></td><td><span class="chip open">Open</span></td></tr>
+            <tr><td><span class="sev critical">Critical</span></td><td>Administrator IAM role</td><td class="mono">EC2Role</td><td><span class="score bad">9.6</span></td><td><span class="chip open">Open</span></td></tr>
+            <tr><td><span class="sev high">High</span></td><td>Open SSH port</td><td class="mono">EC2-Web-01</td><td><span class="score bad">9.2</span></td><td><span class="chip open">Open</span></td></tr>
+            <tr><td><span class="sev high">High</span></td><td>Weak security group</td><td class="mono">WebSG</td><td><span class="score warn">8.9</span></td><td><span class="chip open">Open</span></td></tr>
+            <tr><td><span class="sev medium">Medium</span></td><td>Missing MFA</td><td class="mono">admin user</td><td><span class="score mid">7.6</span></td><td><span class="chip open">Open</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h4><span class="i">4</span>Attack path summary</h4>
+        <svg viewBox="0 0 340 96" style="width:100%; height:auto" role="img" aria-label="Attack chain from external attacker to sensitive data">
+          <g fill="#5B6B85" font-size="8.5" font-weight="600">
+            <text x="26" y="42" text-anchor="middle">External</text><text x="26" y="52" text-anchor="middle">Attacker</text>
+            <text x="96" y="42" text-anchor="middle">Public</text><text x="96" y="52" text-anchor="middle">EC2</text>
+            <text x="160" y="42" text-anchor="middle">IAM</text><text x="160" y="52" text-anchor="middle">Role</text>
+            <text x="222" y="42" text-anchor="middle">Secrets</text><text x="222" y="52" text-anchor="middle">Manager</text>
+            <text x="286" y="42" text-anchor="middle">Sensitive</text><text x="286" y="52" text-anchor="middle">Data</text>
+          </g>
+          <g fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6">
+            <circle cx="96" cy="26" r="11"/><circle cx="160" cy="26" r="11"/><circle cx="222" cy="26" r="11"/>
+            <rect x="275" y="15" width="22" height="22" rx="4"/>
+          </g>
+          <g stroke="#DC2626" stroke-width="2" stroke-dasharray="4 3" fill="none">
+            <path d="M40 26 H82"/><path d="M108 26 H146"/><path d="M172 26 H208"/><path d="M234 26 H271"/>
+          </g>
+          <circle cx="26" cy="26" r="11" fill="#1B2537"/>
+          <text x="26" y="30" text-anchor="middle" fill="#fff" font-size="10">👤</text>
+        </svg>
+        <div class="stat-tile" style="margin-top:12px">
+          <div class="st"><small>Max attack probability</small><b style="color:var(--critical)">91%</b></div>
+          <div class="st"><small>Critical attack paths</small><b style="color:var(--critical)">5</b></div>
+          <div class="st"><small>Average path length</small><b>7 <small style="font-size:11px;color:var(--muted)">resources</small></b></div>
+          <div class="st"><small>Paths to sensitive data</small><b style="color:var(--high)">3</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-sec">
+      <h4><span class="i">5</span>AI-generated recommendations</h4>
+      <div class="ai-grid">
+        <div class="ai-card" style="grid-column:auto"><div class="ai-top"><div class="ai-ic" style="background:var(--critical-bg);color:var(--critical)">🛡</div><h4>Restrict AdministratorAccess IAM policy</h4></div><div class="ai-meta"><div class="kv"><span>Risk reduction</span><b class="rr">35%</b></div><div class="kv"><span>Implementation time</span><b>2–4 hours</b></div><div class="kv"><span>Effort</span><b style="color:var(--critical)">High</b></div></div></div>
+        <div class="ai-card"><div class="ai-top"><div class="ai-ic" style="background:var(--high-bg);color:var(--high)">🔒</div><h4>Close public SSH access</h4></div><div class="ai-meta"><div class="kv"><span>Risk reduction</span><b class="rr">22%</b></div><div class="kv"><span>Implementation time</span><b>1–2 hours</b></div><div class="kv"><span>Effort</span><b style="color:var(--high)">High</b></div></div></div>
+        <div class="ai-card"><div class="ai-top"><div class="ai-ic">🗝</div><h4>Rotate exposed secrets</h4></div><div class="ai-meta"><div class="kv"><span>Risk reduction</span><b class="rr">18%</b></div><div class="kv"><span>Implementation time</span><b>2–3 hours</b></div><div class="kv"><span>Effort</span><b style="color:var(--high)">Medium</b></div></div></div>
+        <div class="ai-card"><div class="ai-top"><div class="ai-ic">👤</div><h4>Enable MFA for administrative users</h4></div><div class="ai-meta"><div class="kv"><span>Risk reduction</span><b class="rr">12%</b></div><div class="kv"><span>Implementation time</span><b>30–60 min</b></div><div class="kv"><span>Effort</span><b style="color:var(--low)">Low</b></div></div></div>
+        <div class="ai-card"><div class="ai-top"><div class="ai-ic">📦</div><h4>Block public S3 access</h4></div><div class="ai-meta"><div class="kv"><span>Risk reduction</span><b class="rr">10%</b></div><div class="kv"><span>Implementation time</span><b>&lt; 15 min</b></div><div class="kv"><span>Effort</span><b style="color:var(--low)">Low</b></div></div></div>
+      </div>
+    </div>
+
+    <div class="rp-sec rp-2col">
+      <div>
+        <h4><span class="i">6</span>Compliance assessment</h4>
+        <div class="comp-row"><div class="t"><b>AWS Well-Architected</b><span>92%</span></div><div class="track"><span class="fill" data-w="92"></span></div></div>
+        <div class="comp-row"><div class="t"><b>CIS AWS Foundations</b><span>88%</span></div><div class="track"><span class="fill" data-w="88"></span></div></div>
+        <div class="comp-row"><div class="t"><b>NIST Cybersecurity Framework</b><span>85%</span></div><div class="track"><span class="fill" data-w="85"></span></div></div>
+        <div class="comp-row"><div class="t"><b>ISO 27001</b><span>90%</span></div><div class="track"><span class="fill" data-w="90"></span></div></div>
+        <div class="comp-row"><div class="t"><b>PCI DSS</b><span>83%</span></div><div class="track"><span class="fill" data-w="83"></span></div></div>
+      </div>
+      <div>
+        <h4><span class="i">8</span>Scan statistics</h4>
+        <div class="health-row"><div class="ic">⏱</div>Scan duration<span class="val">6 min 24 sec</span></div>
+        <div class="health-row"><div class="ic">📦</div>Resources scanned<span class="val">156</span></div>
+        <div class="health-row"><div class="ic">🕸</div>Relationships modeled<span class="val">428</span></div>
+        <div class="health-row"><div class="ic">⚠</div>Attack graphs generated<span class="val">18</span></div>
+        <div class="health-row"><div class="ic">🧠</div>AI analysis time<span class="val">38 sec</span></div>
+        <div class="health-row"><div class="ic">🎯</div>Confidence score<span class="val">97%</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="actions-row" style="margin-top:14px">
+    <button class="btn">⬇ Export PDF</button>
+    <button class="btn">⬇ Export CSV</button>
+    <button class="btn">⬇ Export JSON</button>
+    <button class="btn">Print report</button>
+  </div>
+      </section>
+    </div>
+
+    <footer class="statusbar">
+      <span>CloudSentinel AI Version 1.0</span>
+      <span>© Research Prototype</span>
+      <span>Department of Computer Science</span>
+    </footer>
+  </div>
+</div>
+
+<script>
+  // View switching
+  const tabs = [
+    { btn: document.getElementById('tab-dashboard'), view: document.getElementById('view-dashboard') },
+    { btn: document.getElementById('tab-evaluation'), view: document.getElementById('view-evaluation') },
+    { btn: document.getElementById('tab-graph'), view: document.getElementById('view-graph') },
+    { btn: document.getElementById('tab-attackpath'), view: document.getElementById('view-attackpath') },
+    { btn: document.getElementById('tab-report'), view: document.getElementById('view-report') },
+  ];
+  tabs.forEach(({ btn, view }) => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(t => {
+        t.btn.classList.toggle('is-active', t.btn === btn);
+        t.btn.setAttribute('aria-selected', t.btn === btn ? 'true' : 'false');
+        t.view.classList.toggle('is-active', t.view === view);
+        t.view.hidden = t.view !== view;
+      });
+      animateIn(view);
+    });
+  });
+
+  // Count-up on first reveal
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function animateIn(scope) {
+    scope.querySelectorAll('[data-count]').forEach(el => {
+      if (el.dataset.done) return;
+      el.dataset.done = '1';
+      const target = parseInt(el.dataset.count, 10);
+      if (reduced) { el.textContent = target.toLocaleString(); return; }
+      const t0 = performance.now(), dur = 900;
+      (function tick(t) {
+        const p = Math.min((t - t0) / dur, 1);
+        el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+    scope.querySelectorAll('.fill').forEach(el => {
+      requestAnimationFrame(() => { el.style.width = (el.dataset.w || 0) + '%'; });
+    });
+  }
+  animateIn(document.getElementById('view-dashboard'));
+</script>
+</body>
+</html>
