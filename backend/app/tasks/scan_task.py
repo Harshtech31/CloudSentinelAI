@@ -217,11 +217,13 @@ def run_scan_task(
             finding_repo.bulk_create_from_raw(scan_id, raw_findings)
             repos.update_progress(scan, 90)
 
-            # Stage 5: finalize
+            # Stage 5: finalize — persist the real collected-resource count
+            # (dashboard's scannedResources) and mark complete.
             fresh = _fresh_scan(db, scan_id)
             if fresh.status == ScanStatus.CANCELLED:
                 logger.info("Scan %s cancelled during execution", scan_id)
                 return
+            fresh.resources_scanned = sum(len(v) for v in resources.values())
             repos.mark_completed(fresh)
             logger.info(
                 "Scan %s completed: %d resource(s), %d finding(s), %d graph node(s)",

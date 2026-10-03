@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.analyzers import RawFinding
 from app.core.constants import Severity
-from app.database.models import Finding
+from app.database.models import Finding, Scan
 
 SEVERITY_ORDER = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO]
 
@@ -103,6 +103,24 @@ class FindingRepository:
         stmt = select(Finding.severity, func.count()).group_by(Finding.severity)
         if scan_id is not None:
             stmt = stmt.where(Finding.scan_id == scan_id)
+        counts = {severity.value: 0 for severity in SEVERITY_ORDER}
+        for severity_value, count in self.db.execute(stmt):
+            counts[str(severity_value)] = int(count)
+        counts["total"] = sum(counts.values())
+        return counts
+
+    def count_by_severity_for_user(self, user_id: str) -> dict[str, int]:
+        """Severity counts across every scan owned by a user.
+
+        The dashboard's per-tenant aggregation: joins findings to their
+        owning scan so each user's posture reflects only their data.
+        """
+        stmt = (
+            select(Finding.severity, func.count())
+            .join(Scan, Finding.scan_id == Scan.id)
+            .where(Scan.user_id == user_id)
+            .group_by(Finding.severity)
+        )
         counts = {severity.value: 0 for severity in SEVERITY_ORDER}
         for severity_value, count in self.db.execute(stmt):
             counts[str(severity_value)] = int(count)

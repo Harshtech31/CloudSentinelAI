@@ -49,6 +49,7 @@ class Scan(TimestampMixin, Base):
         String(500), default="iam,ec2,s3,vpc,security_groups,rds,cloudtrail", nullable=False
     )
     progress_percentage: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    resources_scanned: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     error_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
