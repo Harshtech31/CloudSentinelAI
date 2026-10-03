@@ -54,6 +54,17 @@ class FindingStatsResponse(BaseModel):
     total: int = Field(0, description="Total active findings", example=19)
 
 
+class FindingUpdateRequest(BaseModel):
+    """Payload for the finding PATCH endpoint (roadmap task 12)."""
+
+    status: str = Field(
+        ...,
+        description="New lifecycle status: `resolved` or `open`",
+        example="resolved",
+        pattern="^(resolved|open)$",
+    )
+
+
 class FindingListResponse(BaseModel):
     """Paginated list of findings."""
 
