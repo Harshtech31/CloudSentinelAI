@@ -141,7 +141,8 @@ class TestStartScan:
         headers = _register_and_login(test_client)
 
         # Keep the first scan pending (no collector registered → the task
-        # still runs, but we block completion by patching run_scan_task).        with patch("app.api.v1.scan.run_scan_task", lambda scan_id, **kwargs: None):
+        # still runs, but we block completion by patching run_scan_task).
+        with patch("app.api.v1.scan.run_scan_task", lambda scan_id, **kwargs: None):
             first = test_client.post(
                 f"{SCANS}/start", json={"services": ["s3"]}, headers=headers
             )
