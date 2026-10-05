@@ -73,9 +73,12 @@ class Settings(BaseSettings):
     NEO4J_PASSWORD: str = "neo4j_password"
 
     # AWS Credentials
+    # AWS_PROFILE: named CLI profile used for collection. Restricted to
+    # `cloudsentinel-*` profiles — see app/collectors/aws.py guard.
+    AWS_PROFILE: str = "cloudsentinel-eval"
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
-    AWS_DEFAULT_REGION: str = "us-east-1"
+    AWS_DEFAULT_REGION: str = "ap-south-1"
     AWS_SESSION_TOKEN: str = ""
 
     # AI Provider

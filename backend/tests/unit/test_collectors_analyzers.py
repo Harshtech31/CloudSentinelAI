@@ -207,7 +207,7 @@ class TestBaseCollector:
 class TestAWSHelpers:
     def test_session_falls_back_to_defaults(self):
         session = get_aws_session()
-        assert session.region_name == "us-east-1"
+        assert session.region_name == "ap-south-1"
 
     def test_session_explicit_region_override(self):
         session = get_aws_session(region="ap-south-1")
