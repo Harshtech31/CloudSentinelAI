@@ -44,9 +44,19 @@ Thumbs.db
 *.lof
 *.lot
 *.synctex.gz
+*.bbl
+*.blg
 
 # Docker
 docker-compose.override.yml
+
+# Local SQLite dev/demo artifacts
+*.db
+*.sqlite3
+*.sqlite
+
+# Freebuff agent workspace
+.freebuff/
 
 # Secrets
 *.pem

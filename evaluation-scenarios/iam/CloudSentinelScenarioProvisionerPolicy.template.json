@@ -44,6 +44,7 @@
         "iam:DeleteRole",
         "iam:GetRole",
         "iam:GetRolePolicy",
+        "iam:ListAttachedRolePolicies",
         "iam:ListRolePolicies",
         "iam:PutRolePolicy",
         "iam:DeleteRolePolicy",
@@ -141,6 +142,7 @@
       "Effect": "Allow",
       "Action": [
         "ec2:DescribeSecurityGroups",
+        "ec2:DescribeVpcAttribute",
         "ec2:DescribeVpcs",
         "ec2:DescribeTags"
       ],
