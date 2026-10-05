@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1 import api_router
+from app.collectors.registration import register_default_collectors
 from app.core.config import settings
 from app.core.constants import APP_NAME, APP_VERSION
 from app.core.exceptions import setup_exception_handlers
@@ -71,6 +72,7 @@ Authorization: Bearer <your_access_token>
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan event handler for startup and shutdown procedures."""
     setup_logging()
+    register_default_collectors()
     logger.info(f"Starting {APP_NAME} v{APP_VERSION} in [{settings.ENVIRONMENT}] mode...")
     yield
     logger.info(f"Shutting down {APP_NAME}...")
