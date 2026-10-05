@@ -143,13 +143,9 @@ class TestStartScan:
         # Keep the first scan pending (no collector registered → the task
         # still runs, but we block completion by patching run_scan_task).
         with patch("app.api.v1.scan.run_scan_task", lambda scan_id, **kwargs: None):
-            first = test_client.post(
-                f"{SCANS}/start", json={"services": ["s3"]}, headers=headers
-            )
+            first = test_client.post(f"{SCANS}/start", json={"services": ["s3"]}, headers=headers)
             assert first.status_code == 202
-            second = test_client.post(
-                f"{SCANS}/start", json={"services": ["s3"]}, headers=headers
-            )
+            second = test_client.post(f"{SCANS}/start", json={"services": ["s3"]}, headers=headers)
             assert second.status_code == 409
 
     def test_cancel_then_start_is_allowed(self, client) -> None:

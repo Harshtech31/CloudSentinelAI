@@ -223,9 +223,7 @@ class TestResolve:
         client, _, _ = env
         headers = _token_for(client, "alice@x.io")
         finding_id = self._alice_finding(client)
-        resp = client.patch(
-            f"{FINDINGS}/{finding_id}", json={"status": "yeeted"}, headers=headers
-        )
+        resp = client.patch(f"{FINDINGS}/{finding_id}", json={"status": "yeeted"}, headers=headers)
         assert resp.status_code == 422
 
     def test_cannot_resolve_other_users_finding(self, env) -> None:
