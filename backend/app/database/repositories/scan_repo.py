@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.constants import CloudProvider, ScanStatus
-from app.database.models import Scan
+from app.database.models import AuditLog, Scan
 
 ACTIVE_STATUSES = (ScanStatus.PENDING, ScanStatus.RUNNING)
 
@@ -43,6 +43,16 @@ class ScanRepository:
             status=ScanStatus.PENDING,
         )
         self.db.add(scan)
+        self.db.flush()  # id assigned before the audit row references it
+        self.db.add(
+            AuditLog(
+                actor_id=user_id,
+                action="scan.created",
+                entity_type="scan",
+                entity_id=scan.id,
+                detail=f"target={scan.target_cloud.value} services={scan.services}",
+            )
+        )
         self.db.commit()
         self.db.refresh(scan)
         return scan
@@ -85,28 +95,48 @@ class ScanRepository:
         )
         return (self.db.scalar(stmt) or 0) > 0
 
-    # -- lifecycle (each commits) ---------------------------------------------
+    # -- lifecycle (each commits, bundling its audit entry in the same transaction) ---
 
     def mark_running(self, scan: Scan) -> Scan:
         scan.mark_running()
+        self._audit(scan, "scan.started")
         self.db.commit()
         return scan
 
     def mark_completed(self, scan: Scan) -> Scan:
         scan.mark_completed()
+        self._audit(
+            scan,
+            "scan.completed",
+            detail=f"resources_scanned={scan.resources_scanned}",
+        )
         self.db.commit()
         return scan
 
     def mark_failed(self, scan: Scan, message: str) -> Scan:
         scan.mark_failed(message)
+        self._audit(scan, "scan.failed", detail=(message or "")[:500])
         self.db.commit()
         return scan
 
     def mark_cancelled(self, scan: Scan) -> Scan:
         scan.status = ScanStatus.CANCELLED
         scan.error_message = "Cancelled by user"
+        self._audit(scan, "scan.cancelled", detail="Cancelled by user")
         self.db.commit()
         return scan
+
+    def _audit(self, scan: Scan, action: str, detail: str | None = None) -> None:
+        """Stage one audit row on the current transaction (flushed, not committed)."""
+        self.db.add(
+            AuditLog(
+                actor_id=scan.user_id,
+                action=action,
+                entity_type="scan",
+                entity_id=scan.id,
+                detail=detail,
+            )
+        )
 
     def update_progress(self, scan: Scan, percentage: int) -> Scan:
         scan.progress_percentage = max(0, min(100, int(percentage)))
