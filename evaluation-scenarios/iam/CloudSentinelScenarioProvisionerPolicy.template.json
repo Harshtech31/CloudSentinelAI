@@ -57,7 +57,8 @@
       "Sid": "CreateTaggedEvaluationNetworkResources",
       "Effect": "Allow",
       "Action": [
-        "ec2:CreateVpc"
+        "ec2:CreateVpc",
+        "ec2:CreateSecurityGroup"
       ],
       "Resource": "*",
       "Condition": {
