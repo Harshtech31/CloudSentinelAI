@@ -162,20 +162,7 @@
         }
       }
     },
-    {
-      "Sid": "ReadTaggedS5InstanceAttributes",
-      "Effect": "Allow",
-      "Action": "ec2:DescribeInstanceAttribute",
-      "Resource": "arn:aws:ec2:ap-south-2:*:instance/*",
-      "Condition": {
-        "StringEquals": {
-          "aws:RequestedRegion": "ap-south-2",
-          "aws:ResourceTag/Project": "CloudSentinel",
-          "aws:ResourceTag/Environment": "Evaluation",
-          "aws:ResourceTag/Scenario": "S5"
-        }
-      }
-    },
+
     {
       "Sid": "DescribeS5ComputeResources",
       "Effect": "Allow",
@@ -183,6 +170,7 @@
         "ec2:DescribeAvailabilityZones",
         "ec2:DescribeImages",
         "ec2:DescribeInstances",
+        "ec2:DescribeInstanceAttribute",
         "ec2:DescribeInstanceTypes",
         "ec2:DescribeSubnets"
       ],
