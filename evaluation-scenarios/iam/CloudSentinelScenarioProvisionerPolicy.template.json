@@ -57,8 +57,7 @@
       "Sid": "CreateTaggedEvaluationNetworkResources",
       "Effect": "Allow",
       "Action": [
-        "ec2:CreateVpc",
-        "ec2:CreateSecurityGroup"
+        "ec2:CreateVpc"
       ],
       "Resource": "*",
       "Condition": {
@@ -79,6 +78,19 @@
             "SafetyBoundary",
             "Name"
           ]
+        }
+      }
+    },
+    {
+      "Sid": "CreateSecurityGroupInTaggedEvaluationVpc",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:ap-south-2:*:vpc/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-2",
+          "aws:ResourceTag/Project": "CloudSentinel",
+          "aws:ResourceTag/Environment": "Evaluation"
         }
       }
     },
