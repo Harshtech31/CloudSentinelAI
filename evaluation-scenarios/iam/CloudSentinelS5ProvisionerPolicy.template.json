@@ -4,7 +4,7 @@
     {
       "Sid": "SyntheticS3ObjectsOnly",
       "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject", "s3:PutObjectTagging", "s3:DeleteObject"],
+      "Action": ["s3:GetObject", "s3:GetObjectTagging", "s3:PutObject", "s3:PutObjectTagging", "s3:DeleteObject"],
       "Resource": "arn:aws:s3:::cloudsentinel-eval-*/*"
     },
     {
@@ -70,16 +70,59 @@
       }
     },
     {
-      "Sid": "LaunchTaggedS5Instance",
+      "Sid": "UseAmazonOwnedImageForS5",
       "Effect": "Allow",
       "Action": "ec2:RunInstances",
-      "Resource": "*",
+      "Resource": "arn:aws:ec2:ap-south-2::image/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-2",
+          "ec2:Owner": "amazon"
+        }
+      }
+    },
+    {
+      "Sid": "UseTaggedPrivateS5NetworkOnly",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": [
+        "arn:aws:ec2:ap-south-2:*:subnet/*",
+        "arn:aws:ec2:ap-south-2:*:security-group/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-2",
+          "aws:ResourceTag/Project": "CloudSentinel",
+          "aws:ResourceTag/Environment": "Evaluation",
+          "aws:ResourceTag/Scenario": "S5"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedS5InstanceAndVolumeOnly",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": [
+        "arn:aws:ec2:ap-south-2:*:instance/*",
+        "arn:aws:ec2:ap-south-2:*:volume/*"
+      ],
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": "ap-south-2",
           "aws:RequestTag/Project": "CloudSentinel",
           "aws:RequestTag/Environment": "Evaluation",
           "aws:RequestTag/Owner": "Harshith"
+        }
+      }
+    },
+    {
+      "Sid": "CreateS5NetworkInterfaceOnlyDuringLaunch",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:ap-south-2:*:network-interface/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-2"
         }
       }
     },
