@@ -15,7 +15,7 @@
 \maketitle
 
 \begin{abstract}
-Cloud Security Posture Management (CSPM) tools commonly report findings at the individual-resource level, which can obscure relationships among cloud assets and complicate remediation prioritisation. This paper proposes CloudSentinel AI, an AWS-focused framework for context-aware cloud misconfiguration assessment. The design collects selected configuration metadata, models assets and relationships in a knowledge graph, evaluates documented security rules, and derives candidate attack paths subject to explicit preconditions. A transparent contextual scoring heuristic is proposed to prioritise findings using asset criticality, exposure, identity permissions, data sensitivity, and graph context. An LLM-assisted reporting component is constrained to evidence-bounded, human-reviewed explanations and remediation recommendations. The paper also defines a controlled AWS evaluation protocol based on labelled scenarios. This work presents a framework and evaluation design; it does not claim completed experimental validation or general production effectiveness.
+Cloud Security Posture Management (CSPM) tools commonly report findings at the individual-resource level, which can obscure relationships among cloud assets and complicate remediation prioritisation. This paper proposes CloudSentinel AI, an AWS-focused framework for context-aware cloud misconfiguration assessment. The design collects selected configuration metadata, models assets and relationships in a knowledge graph, evaluates documented security rules, and derives candidate attack paths subject to explicit preconditions. A transparent contextual scoring heuristic is proposed to prioritise findings using asset criticality, exposure, identity permissions, data sensitivity, and graph context. An LLM-assisted reporting component is constrained to evidence-bounded, human-reviewed explanations and remediation recommendations. The paper also defines a controlled AWS evaluation protocol based on labelled scenarios. A tagged, isolated AWS baseline has been deployed and configuration-verified; the six scenario-level detection and candidate-path experiments remain unexecuted. This work therefore does not claim completed experimental validation or general production effectiveness.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -138,13 +138,35 @@ Each LLM-assisted report will be evaluated by at least two independent reviewers
 \subsection{Research Questions and Reproducibility Artifacts}
 The study evaluates four bounded research questions: \emph{RQ1}, whether the selected rule set detects the labelled findings in S1--S6; \emph{RQ2}, whether generated candidate paths satisfy the expected-path conditions; \emph{RQ3}, whether the heuristic ranking agrees with the pre-specified reference ranking; and \emph{RQ4}, whether LLM-assisted reports meet the reviewer rubric without unsupported or unsafe recommendations. The versioned scenario catalogue, ground-truth definitions, and validation script are maintained in the repository root under \texttt{evaluation-scenarios/}. For each executed run, the study will archive sanitised configuration snapshots, source and tool versions, normalised outputs, graph evidence, measurement records, and cleanup confirmation. Secrets, credentials, unredacted logs, and sensitive asset identifiers are excluded from the repository.
 
+\section{Implementation Status and Baseline Deployment Evidence}
+At the time of writing, the controlled AWS baseline has been deployed in an isolated evaluation account in the \texttt{ap-south-2} region and is managed by Terraform. The deployment contains seven resources: a test-only S3 bucket and its public-access and encryption controls, a dedicated IAM test role and bucket-scoped inline policy, and an isolated VPC with an unattached security-group fixture. The resource identifiers, execution artifacts, and account-specific logs are retained outside the repository; only sanitised evidence is archived.
+
+\begin{table}[t]
+\caption{Verified Controlled-Baseline State}
+\label{tab:baseline}
+\centering
+\footnotesize
+\begin{tabular}{p{0.27\columnwidth} p{0.57\columnwidth}}
+\toprule
+Component & Observed configuration verification \\
+\midrule
+S3 baseline & All four S3 public-access blocks enabled; AES-256 default encryption enabled; bucket inventory empty. \\
+IAM baseline & Dedicated role has no attached managed policies; its sole inline policy is limited to \texttt{s3:ListBucket} and \texttt{s3:GetObject} on the test bucket. \\
+Network baseline & VPC has no Internet gateway or subnets; its only route is the VPC-local route. \\
+Security-group fixture & One \texttt{tcp/8443} ingress rule from \texttt{0.0.0.0/0}; no egress rules and no attached network interfaces. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Read-only AWS API checks verified the state in Table~\ref{tab:baseline}, and a subsequent Terraform plan reported no pending changes. The broad ingress rule is intentionally retained only as a configuration-analysis fixture: without a subnet, route to an Internet gateway, workload, or attached network interface, it does not create a reachable public service. This evidence verifies laboratory deployment and isolation controls, not S1--S6 detection accuracy, candidate-path validity, timing, baseline-tool comparison, or LLM-report quality. Those results must be collected using the protocol in Section~IV before they can be reported.
+
 \section{Discussion and Limitations}
 The proposed framework does not establish that a graph path is exploitable merely because related resources are connected. The threat model, evidence sources, path-validity rules, and score weights must be explicit. The controlled scenarios also do not represent all production environments, cloud providers, threat actors, or organisational policies. The initial scope is AWS only, and the in-memory graph design may not scale to large deployments without further engineering.
 
 The LLM component adds cost, latency, privacy, and reliability concerns. It must not receive unapproved sensitive data, and its recommendations must not be executed automatically. These limitations motivate a staged evaluation in which each contribution is tied to an implementation artifact, metric, evidence source, and stated limitation.
 
 \section{Conclusion}
-This paper presented CloudSentinel AI, a proposed framework for combining AWS configuration assessment, knowledge-graph modeling, candidate attack-path analysis, contextual prioritisation, and LLM-assisted reporting. The central contribution is a reproducible evaluation design that separates labelled finding detection, candidate-path validity, prioritisation, and explanation quality. Future work will implement the pipeline, execute the controlled scenario catalogue, archive raw evidence, and report bounded results without generalising beyond the evaluated configurations.
+This paper presented CloudSentinel AI, a proposed framework for combining AWS configuration assessment, knowledge-graph modeling, candidate attack-path analysis, contextual prioritisation, and LLM-assisted reporting. The central contribution is a reproducible evaluation design that separates labelled finding detection, candidate-path validity, prioritisation, and explanation quality. Future work will complete the read-only collectors and rule implementations, execute the controlled scenario catalogue, archive raw evidence, and report bounded results without generalising beyond the evaluated configurations.
 
 \bibliographystyle{../IEEEtran}
 \bibliography{../references}
