@@ -4,7 +4,7 @@
     {
       "Sid": "SyntheticS3ObjectsOnly",
       "Effect": "Allow",
-      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:PutObjectTagging", "s3:DeleteObject"],
       "Resource": "arn:aws:s3:::cloudsentinel-eval-*/*"
     },
     {
@@ -52,6 +52,20 @@
           "aws:RequestedRegion": "ap-south-2",
           "aws:ResourceTag/Project": "CloudSentinel",
           "aws:ResourceTag/Environment": "Evaluation"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedS5Subnet",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSubnet",
+      "Resource": "arn:aws:ec2:ap-south-2:*:subnet/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-2",
+          "aws:RequestTag/Project": "CloudSentinel",
+          "aws:RequestTag/Environment": "Evaluation",
+          "aws:RequestTag/Owner": "Harshith"
         }
       }
     },
