@@ -38,6 +38,7 @@
       ],
       "Resource": "arn:aws:s3:::cloudsentinel-eval-*"
     },
+
     {
       "Sid": "DisabledCloudTrailScenarioOnly",
       "Effect": "Allow",

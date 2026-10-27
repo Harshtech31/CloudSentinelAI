@@ -7,3 +7,4 @@ scenario_suffix                      = "lab"
 enable_s1_public_control_scenario     = false
 enable_s2_bucket_wildcard_scenario    = false
 enable_s4_disabled_trail_scenario      = false
+enable_s5_private_workload_scenario    = false

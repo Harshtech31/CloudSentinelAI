@@ -15,10 +15,32 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_availability_zones" "available" {
+  count = var.enable_s5_private_workload_scenario ? 1 : 0
+  state = "available"
+}
+
+data "aws_ami" "s5_amazon_linux" {
+  count       = var.enable_s5_private_workload_scenario ? 1 : 0
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-kernel-6.1-x86_64"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
 locals {
   bucket_name    = "cloudsentinel-eval-${data.aws_caller_identity.current.account_id}-${var.scenario_suffix}-s1"
   s4_bucket_name = "cloudsentinel-eval-${data.aws_caller_identity.current.account_id}-${var.scenario_suffix}-s4-logs"
   s4_trail_name  = "cloudsentinel-eval-${var.scenario_suffix}-s4-disabled"
+  s5_secret_name = "cloudsentinel-eval-${var.scenario_suffix}-s5-metadata-only"
   scenario_role_actions = var.enable_s2_bucket_wildcard_scenario ? [
     "s3:*",
     ] : [
@@ -207,6 +229,18 @@ data "aws_iam_policy_document" "scenario_role_permissions" {
       "${aws_s3_bucket.scenario_s1.arn}/*"
     ]
   }
+
+  dynamic "statement" {
+    for_each = var.enable_s5_private_workload_scenario ? [1] : []
+    content {
+      sid     = "S5SecretMetadataOnly"
+      effect  = "Allow"
+      actions = ["secretsmanager:DescribeSecret"]
+      resources = [
+        aws_secretsmanager_secret.scenario_s5_metadata[0].arn,
+      ]
+    }
+  }
 }
 
 resource "aws_iam_role_policy" "scenario_s2_s5" {
@@ -215,8 +249,43 @@ resource "aws_iam_role_policy" "scenario_s2_s5" {
   policy = data.aws_iam_policy_document.scenario_role_permissions.json
 }
 
+resource "aws_iam_instance_profile" "scenario_s5" {
+  count = var.enable_s5_private_workload_scenario ? 1 : 0
+  name  = "cloudsentinel-eval-${var.scenario_suffix}-s5"
+  role  = aws_iam_role.scenario_s2_s5.name
+
+  tags = {
+    Scenario       = "S5"
+    SafetyBoundary = "PrivateNoEgress"
+  }
+}
+
+resource "aws_secretsmanager_secret" "scenario_s5_metadata" {
+  count                   = var.enable_s5_private_workload_scenario ? 1 : 0
+  name                    = local.s5_secret_name
+  recovery_window_in_days = 0
+
+  tags = {
+    Scenario       = "S5"
+    SafetyBoundary = "MetadataOnlyNoSecretValue"
+  }
+}
+
+resource "aws_s3_object" "scenario_s5_synthetic" {
+  count        = var.enable_s5_private_workload_scenario ? 1 : 0
+  bucket       = aws_s3_bucket.scenario_s1.id
+  key          = "s5-synthetic.txt"
+  content      = "CloudSentinel S5 synthetic non-sensitive test record."
+  content_type = "text/plain"
+
+  tags = {
+    Scenario       = "S5"
+    SafetyBoundary = "SyntheticNonSensitiveData"
+  }
+}
+
 # S3 baseline: an isolated VPC with no Internet gateway, route tables, or
-# compute resources. The broad ingress rule is limited to an unused port and
+# public IPs. S5 adds one no-egress private workload only when explicitly enabled. The broad ingress rule is limited to an unused port and
 # exists only as a configuration-analysis fixture; it creates no public workload.
 resource "aws_vpc" "scenario_s3" {
   cidr_block           = "10.200.0.0/16"
@@ -248,5 +317,57 @@ resource "aws_security_group" "scenario_s3" {
   tags = {
     Scenario       = "S3"
     SafetyBoundary = "NoPublicWorkload"
+  }
+}
+
+resource "aws_subnet" "scenario_s5_private" {
+  count             = var.enable_s5_private_workload_scenario ? 1 : 0
+  vpc_id            = aws_vpc.scenario_s3.id
+  cidr_block        = "10.200.10.0/24"
+  availability_zone = data.aws_availability_zones.available[0].names[0]
+
+  tags = {
+    Name           = "cloudsentinel-eval-${var.scenario_suffix}-s5-private"
+    Scenario       = "S5"
+    SafetyBoundary = "NoPublicIPNoRoute"
+  }
+}
+
+resource "aws_security_group" "scenario_s5_private" {
+  count       = var.enable_s5_private_workload_scenario ? 1 : 0
+  name        = "cloudsentinel-eval-${var.scenario_suffix}-s5-private"
+  description = "Private S5 workload security group with no ingress or egress"
+  vpc_id      = aws_vpc.scenario_s3.id
+  egress      = []
+
+  tags = {
+    Scenario       = "S5"
+    SafetyBoundary = "NoIngressNoEgress"
+  }
+}
+
+resource "aws_instance" "scenario_s5_private" {
+  count                       = var.enable_s5_private_workload_scenario ? 1 : 0
+  ami                         = data.aws_ami.s5_amazon_linux[0].id
+  instance_type               = "t3.micro"
+  subnet_id                   = aws_subnet.scenario_s5_private[0].id
+  vpc_security_group_ids      = [aws_security_group.scenario_s5_private[0].id]
+  iam_instance_profile        = aws_iam_instance_profile.scenario_s5[0].name
+  associate_public_ip_address = false
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
+  tags = {
+    Name           = "cloudsentinel-eval-${var.scenario_suffix}-s5-private"
+    Scenario       = "S5"
+    SafetyBoundary = "PrivateNoEgressNoPublicIP"
   }
 }

@@ -22,3 +22,8 @@ output "scenario_s4_trail_name" {
   description = "Dedicated disabled S4 CloudTrail test trail name, if enabled."
   value       = try(aws_cloudtrail.scenario_s4_disabled[0].name, null)
 }
+
+output "scenario_s5_instance_id" {
+  description = "Private S5 test workload instance ID, if enabled."
+  value       = try(aws_instance.scenario_s5_private[0].id, null)
+}

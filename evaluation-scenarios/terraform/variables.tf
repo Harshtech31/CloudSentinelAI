@@ -43,6 +43,12 @@ variable "enable_s4_disabled_trail_scenario" {
   default     = false
 }
 
+variable "enable_s5_private_workload_scenario" {
+  description = "Create one private no-egress t3.micro workload, a synthetic S3 object, and a metadata-only Secrets Manager container."
+  type        = bool
+  default     = false
+}
+
 variable "scenario_suffix" {
   description = "Lowercase account-local suffix for deterministic test resource names."
   type        = string

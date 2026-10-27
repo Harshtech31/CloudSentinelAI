@@ -1,6 +1,8 @@
 # Scenario Provisioner Policy
 
-`CloudSentinelScenarioProvisionerPolicy.template.json` is the reviewed policy template for the IAM user named `CloudSentinelScenarioProvisioner`.
+`CloudSentinelScenarioProvisionerPolicy.template.json` is the reviewed baseline/S1--S4 policy template for the IAM user named `CloudSentinelScenarioProvisioner`.
+
+`CloudSentinelS5ProvisionerPolicy.template.json` is a separate, temporary S5 policy because an IAM managed policy is limited to 6,144 non-whitespace characters. Attach it only for the approved private S5 execution, then remove it after S5 teardown.
 
 ## Current scope
 
