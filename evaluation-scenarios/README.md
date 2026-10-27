@@ -18,7 +18,8 @@ This directory is the source of truth for the controlled AWS evaluation catalogu
 - `scripts/validate_catalog.py` — dependency-free validation of the two JSON files.
 - `scripts/run_local_scenarios.py` — safe in-memory fixture validation using the backend attack-graph classes; it never calls AWS.
 - `scripts/collect_baseline_evidence.py` — a read-only evaluator for the deployed S3, IAM, VPC, and security-group baseline; it does not list or read S3 objects, retrieve secrets, or modify AWS.
-- `tests/` — automated tests for local fixtures and the baseline evaluator's path-precondition logic.
+- `scripts/collect_s5_evidence.py` — a read-only evaluator for the private S5 instance-profile relationship; it reads no S3 object content or secret value and rejects a candidate path when the entry and network preconditions are absent.
+- `tests/` — automated tests for local fixtures and the evaluator path-precondition logic.
 - `terraform/` — reviewed, tagged, non-production baseline infrastructure. Do not apply it before following `runbooks/cloud-deployment.md`.
 - `iam/` — policy templates for reviewed scenario identities; templates are not ready to attach until all placeholders are replaced and validated in the IAM console.
 - `runbooks/` — deployment and cleanup prerequisites.
@@ -56,3 +57,15 @@ evaluation-scenarios/.venv/bin/python evaluation-scenarios/scripts/collect_basel
 ```
 
 The evaluator reports configuration evidence only. In particular, a world-source security-group rule is not a candidate attack path unless the required route, subnet, and attached-workload evidence is present.
+
+To collect the private S5 relationship evidence, use the read-only evaluation profile for infrastructure/IAM/secret metadata checks. The current reader is not allowed to call S3 `HeadObject`, so the approved provisioner profile may be supplied only for that metadata operation:
+
+```bash
+evaluation-scenarios/.venv/bin/python evaluation-scenarios/scripts/collect_s5_evidence.py \
+  --profile cloudsentinel-eval \
+  --object-metadata-profile cloudsentinel-provisioner \
+  --region ap-south-2 \
+  --output evaluation-scenarios/evidence/s5-private-relationship.json
+```
+
+This command does not list or read S3 object contents, retrieve secret values, or connect to the instance.

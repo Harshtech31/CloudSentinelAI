@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "review_status": "draft_requires_pre_deployment_review",
+  "review_status": "s5_executed_private_relationship_s6_requires_separate_pre_deployment_review",
   "scenarios": [
     {
       "id": "S1",
@@ -36,11 +36,12 @@
     },
     {
       "id": "S5",
-      "expected_findings": ["test_network_condition", "test_iam_permission_condition", "test_data_access_condition"],
-      "negative_controls": ["missing_required_edge_precondition"],
-      "expected_candidate_paths": ["documented_entry_condition_to_test_target_with_evidence_for_every_edge"],
-      "forbidden_candidate_paths": ["path_with_missing_or_unverified_edge_precondition"],
-      "required_evidence": ["sanitised_resource_inventory", "graph_export", "path_edge_evidence", "independent_path_review", "cleanup_record"]
+      "expected_findings": [],
+      "expected_relationships": ["private_instance_profile_to_synthetic_s3_object_and_secret_metadata"],
+      "negative_controls": ["no_public_entry_point", "no_internet_or_nat_route", "no_security_group_egress", "imdsv2_hop_limit_one", "no_get_secret_value"],
+      "expected_candidate_paths": [],
+      "forbidden_candidate_paths": ["path_with_missing_or_unverified_edge_precondition", "path_to_secret_value_without_get_secret_value_permission"],
+      "required_evidence": ["sanitised_private_relationship_snapshot", "candidate_path_rejection_record", "terraform_convergence_record"]
     },
     {
       "id": "S6",

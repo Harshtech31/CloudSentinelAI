@@ -101,21 +101,15 @@ def fixture_definitions() -> dict[str, FixtureDefinition]:
             edges=(),
         ),
         "S5": FixtureDefinition(
-            detected_findings=(
-                "test_network_condition",
-                "test_iam_permission_condition",
-                "test_data_access_condition",
-            ),
+            detected_findings=(),
             nodes=(
-                node("lab-entry", "LAB_ENTRY", entry=True, risk=4.0),
-                node("test-workload", "EC2_INSTANCE", risk=5.0),
+                node("private-workload", "EC2_INSTANCE", risk=5.0),
                 node("test-role", "IAM_ROLE", risk=7.0),
-                node("test-bucket", "S3_BUCKET", target=True, risk=8.0),
+                node("synthetic-object", "S3_OBJECT", target=True, risk=8.0),
             ),
             edges=(
-                AttackEdge("lab-entry", "test-workload", "ENTRY_EVIDENCE", True),
-                AttackEdge("test-workload", "test-role", "IDENTITY_EVIDENCE", True),
-                AttackEdge("test-role", "test-bucket", "DATA_ACCESS_EVIDENCE", True),
+                AttackEdge("private-workload", "test-role", "IDENTITY_EVIDENCE", True),
+                AttackEdge("test-role", "synthetic-object", "DATA_ACCESS_EVIDENCE", True),
             ),
         ),
         "S6": FixtureDefinition(

@@ -24,18 +24,14 @@ def test_all_local_fixtures_match_catalogue_expectations() -> None:
     assert all(scenario["status"] == "pass" for scenario in result["results"])
 
 
-def test_s5_returns_one_multi_stage_candidate_path() -> None:
+def test_s5_preserves_private_relationship_edges_without_a_candidate_path() -> None:
     result = run(["S5"])
     scenario = result["results"][0]
 
     assert scenario["status"] == "pass"
     assert scenario["path_expectation_met"] is True
-    assert scenario["candidate_paths"][0]["nodes"] == [
-        "lab-entry",
-        "test-workload",
-        "test-role",
-        "test-bucket",
-    ]
+    assert scenario["detected_findings"] == []
+    assert scenario["candidate_paths"] == []
 
 
 def test_s6_is_explicitly_local_and_never_accesses_aws() -> None:

@@ -50,9 +50,13 @@ def main() -> int:
             )
 
         for scenario in ground_truth["scenarios"]:
-            for field in ("expected_findings", "negative_controls", "required_evidence"):
+            for field in ("negative_controls", "required_evidence"):
                 if not scenario.get(field):
                     raise ValueError(f"{scenario['id']}: '{field}' must not be empty")
+            if not scenario.get("expected_findings") and not scenario.get("expected_relationships"):
+                raise ValueError(
+                    f"{scenario['id']}: requires at least one expected finding or expected relationship"
+                )
     except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
         print(f"Scenario catalogue validation failed: {error}", file=sys.stderr)
         return 1
