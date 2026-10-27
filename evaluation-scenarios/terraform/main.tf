@@ -17,6 +17,12 @@ data "aws_caller_identity" "current" {}
 
 locals {
   bucket_name = "cloudsentinel-eval-${data.aws_caller_identity.current.account_id}-${var.scenario_suffix}-s1"
+  scenario_role_actions = var.enable_s2_bucket_wildcard_scenario ? [
+    "s3:*",
+    ] : [
+    "s3:ListBucket",
+    "s3:GetObject",
+  ]
 }
 
 # S1 baseline: a test-only bucket that retains all public-access protections.
@@ -35,10 +41,34 @@ resource "aws_s3_bucket" "scenario_s1" {
 resource "aws_s3_bucket_public_access_block" "scenario_s1" {
   bucket = aws_s3_bucket.scenario_s1.id
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = !var.enable_s1_public_control_scenario
+  block_public_policy     = !var.enable_s1_public_control_scenario
+  ignore_public_acls      = !var.enable_s1_public_control_scenario
+  restrict_public_buckets = !var.enable_s1_public_control_scenario
+}
+
+data "aws_iam_policy_document" "scenario_s1_public_read" {
+  count = var.enable_s1_public_control_scenario ? 1 : 0
+
+  statement {
+    sid     = "EmptyBucketObjectReadOnly"
+    effect  = "Allow"
+    actions = ["s3:GetObject"]
+    resources = [
+      "${aws_s3_bucket.scenario_s1.arn}/*",
+    ]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "scenario_s1_public_read" {
+  count  = var.enable_s1_public_control_scenario ? 1 : 0
+  bucket = aws_s3_bucket.scenario_s1.id
+  policy = data.aws_iam_policy_document.scenario_s1_public_read[0].json
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "scenario_s1" {
@@ -79,7 +109,7 @@ data "aws_iam_policy_document" "scenario_role_permissions" {
   statement {
     sid     = "TestBucketOnly"
     effect  = "Allow"
-    actions = ["s3:ListBucket", "s3:GetObject"]
+    actions = local.scenario_role_actions
     resources = [
       aws_s3_bucket.scenario_s1.arn,
       "${aws_s3_bucket.scenario_s1.arn}/*"

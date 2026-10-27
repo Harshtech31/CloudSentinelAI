@@ -13,23 +13,25 @@
     {
       "id": "S1",
       "name": "Public S3 storage exposure",
-      "status": "design",
+      "status": "partial_account_safeguard_blocked_and_restored",
       "focus": ["finding_detection", "evidence_capture", "remediation_guidance"],
-      "deployment_boundary": "Test-only bucket in the authorised non-production account.",
+      "deployment_boundary": "Test-only empty bucket in the authorised non-production account; account-level S3 Block Public Access prevented the intended public policy from being attached.",
+      "execution_note": "Bucket-level public-access blocks were temporarily disabled and detected; no public policy or object was created, and all controls were restored.",
       "ground_truth_file": "ground-truth/catalog.json"
     },
     {
       "id": "S2",
       "name": "Overly permissive IAM policy",
-      "status": "design",
+      "status": "executed_and_restored",
       "focus": ["finding_detection", "identity_relationships"],
-      "deployment_boundary": "Dedicated test principal with no production access.",
+      "deployment_boundary": "Dedicated test principal with no production access and permissions limited to the empty test bucket.",
+      "execution_note": "A temporary bucket-scoped s3:* inline policy was detected and then restored to ListBucket/GetObject only.",
       "ground_truth_file": "ground-truth/catalog.json"
     },
     {
       "id": "S3",
       "name": "Insecure network configuration",
-      "status": "design",
+      "status": "baseline_configuration_evaluated",
       "focus": ["finding_detection", "reachability_preconditions"],
       "deployment_boundary": "Laboratory-only security-group condition; no public Internet exposure of a weak workload.",
       "ground_truth_file": "ground-truth/catalog.json"

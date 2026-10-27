@@ -70,3 +70,33 @@ def test_protected_s3_and_unmanaged_role_are_negative_controls():
 
     assert result["negative_controls"]["s3_protected"] is True
     assert result["negative_controls"]["iam_role_has_no_attached_managed_policies"] is True
+
+
+def test_public_bucket_policy_is_an_s1_finding_without_a_candidate_path():
+    data = snapshot(internet_gateway=False, subnet=False, interface=False)
+    data["s3"]["public_access_block"] = {
+        "block_public_acls": False,
+        "ignore_public_acls": False,
+        "block_public_policy": False,
+        "restrict_public_buckets": False,
+    }
+    data["s3"]["bucket_policy"] = {
+        "Statement": [{"Effect": "Allow", "Principal": "*", "Action": "s3:GetObject"}]
+    }
+
+    result = MODULE.evaluate(data)
+
+    assert any(finding["rule_id"] == "CS-AWS-S3-001" for finding in result["findings"])
+    assert result["negative_controls"]["s3_public_object_read_policy"] is True
+
+
+def test_bucket_scoped_s3_wildcard_is_an_s2_finding():
+    data = snapshot(internet_gateway=False, subnet=False, interface=False)
+    data["iam"]["inline_policy"] = {
+        "Statement": [{"Effect": "Allow", "Action": ["s3:*"], "Resource": "arn:aws:s3:::test"}]
+    }
+
+    result = MODULE.evaluate(data)
+
+    assert any(finding["rule_id"] == "CS-AWS-IAM-002" for finding in result["findings"])
+    assert result["negative_controls"]["iam_role_has_s3_wildcard"] is True

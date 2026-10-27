@@ -25,6 +25,18 @@ variable "cleanup_date" {
   }
 }
 
+variable "enable_s1_public_control_scenario" {
+  description = "Temporarily weaken only the empty S1 test bucket's public-access controls and add an object-read-only public policy."
+  type        = bool
+  default     = false
+}
+
+variable "enable_s2_bucket_wildcard_scenario" {
+  description = "Temporarily grant s3:* only on the empty S1 test bucket to the dedicated S2 test role."
+  type        = bool
+  default     = false
+}
+
 variable "scenario_suffix" {
   description = "Lowercase account-local suffix for deterministic test resource names."
   type        = string

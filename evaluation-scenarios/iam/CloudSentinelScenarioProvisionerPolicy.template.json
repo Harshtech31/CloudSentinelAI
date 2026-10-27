@@ -31,6 +31,8 @@
         "s3:GetReplicationConfiguration",
         "s3:ListBucket",
         "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
         "s3:PutBucketPublicAccessBlock",
         "s3:PutBucketTagging"
       ],

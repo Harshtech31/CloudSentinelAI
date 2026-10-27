@@ -51,6 +51,38 @@ def _is_world_ingress(permission: dict[str, Any]) -> bool:
     return any(item.get("CidrIp") == "0.0.0.0/0" for item in permission.get("IpRanges", []))
 
 
+def _bucket_policy_allows_public_object_read(policy: dict[str, Any] | None) -> bool:
+    """Return whether a bucket policy grants public object reads."""
+    if not policy:
+        return False
+    statements = policy.get("Statement", [])
+    if isinstance(statements, dict):
+        statements = [statements]
+    for statement in statements:
+        if statement.get("Effect") != "Allow" or statement.get("Principal") != "*":
+            continue
+        actions = statement.get("Action", [])
+        if isinstance(actions, str):
+            actions = [actions]
+        if "s3:GetObject" in actions or "s3:*" in actions:
+            return True
+    return False
+
+
+def _policy_has_s3_wildcard(policy: dict[str, Any]) -> bool:
+    """Return whether any inline-policy statement grants s3:*."""
+    statements = policy.get("Statement", [])
+    if isinstance(statements, dict):
+        statements = [statements]
+    for statement in statements:
+        actions = statement.get("Action", [])
+        if isinstance(actions, str):
+            actions = [actions]
+        if statement.get("Effect") == "Allow" and "s3:*" in actions:
+            return True
+    return False
+
+
 def evaluate(snapshot: dict[str, Any]) -> dict[str, Any]:
     """Evaluate baseline facts without making AWS calls.
 
@@ -58,9 +90,16 @@ def evaluate(snapshot: dict[str, Any]) -> dict[str, Any]:
     path only if a route, attached interface, and workload evidence are all
     present; this approved baseline deliberately lacks those preconditions.
     """
-    pab = snapshot["s3"]["public_access_block"]
-    s3_protected = all(pab.values()) and snapshot["s3"]["default_encryption"] is not None
+    s3 = snapshot["s3"]
+    pab = s3["public_access_block"]
+    public_object_read = _bucket_policy_allows_public_object_read(s3.get("bucket_policy"))
+    s3_protected = (
+        all(pab.values())
+        and s3["default_encryption"] is not None
+        and not public_object_read
+    )
     role = snapshot["iam"]
+    role_has_s3_wildcard = _policy_has_s3_wildcard(role["inline_policy"])
     network = snapshot["network"]
     group = network["security_group"]
     world_rules = [permission for permission in group["ingress"] if _is_world_ingress(permission)]
@@ -75,8 +114,23 @@ def evaluate(snapshot: dict[str, Any]) -> dict[str, Any]:
             {
                 "rule_id": "CS-AWS-S3-001",
                 "severity": "high",
-                "resource": snapshot["s3"]["bucket"],
-                "title": "S3 public-access protection or default encryption is incomplete",
+                "resource": s3["bucket"],
+                "title": "S3 public-access controls or bucket policy permit public object reads",
+                "evidence": {
+                    "public_access_block": pab,
+                    "public_object_read_policy": public_object_read,
+                    "default_encryption": s3["default_encryption"],
+                },
+                "candidate_path": False,
+            }
+        )
+    if role_has_s3_wildcard:
+        findings.append(
+            {
+                "rule_id": "CS-AWS-IAM-002",
+                "severity": "high",
+                "resource": role["role_name"],
+                "title": "Test role grants s3:* on the evaluation bucket",
                 "candidate_path": False,
             }
         )
@@ -123,7 +177,9 @@ def evaluate(snapshot: dict[str, Any]) -> dict[str, Any]:
         "findings": findings,
         "negative_controls": {
             "s3_protected": s3_protected,
+            "s3_public_object_read_policy": public_object_read,
             "iam_role_has_no_attached_managed_policies": not role["attached_managed_policies"],
+            "iam_role_has_s3_wildcard": role_has_s3_wildcard,
             "network_candidate_path_preconditions_met": candidate_path_preconditions_met,
         },
         "interpretation": (
@@ -150,6 +206,12 @@ def collect(
 
     pab = _public_access_block(s3.get_public_access_block(Bucket=bucket))
     encryption = _default_encryption(s3.get_bucket_encryption(Bucket=bucket))
+    try:
+        bucket_policy = json.loads(s3.get_bucket_policy(Bucket=bucket)["Policy"])
+    except ClientError as error:
+        if error.response["Error"]["Code"] != "NoSuchBucketPolicy":
+            raise
+        bucket_policy = None
     inline_policy = iam.get_role_policy(RoleName=role_name, PolicyName=role_policy_name)["PolicyDocument"]
     attached_policies = iam.list_attached_role_policies(RoleName=role_name)["AttachedPolicies"]
     security_group = ec2.describe_security_groups(GroupIds=[security_group_id])["SecurityGroups"][0]
@@ -167,6 +229,7 @@ def collect(
             "bucket": bucket,
             "public_access_block": pab,
             "default_encryption": encryption,
+            "bucket_policy": bucket_policy,
             "object_contents_collected": False,
             "collection_limitation": "The read-only evaluator does not request S3 object listing or object reads.",
         },
