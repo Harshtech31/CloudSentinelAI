@@ -19,6 +19,8 @@ This directory is the source of truth for the controlled AWS evaluation catalogu
 - `scripts/run_local_scenarios.py` — safe in-memory fixture validation using the backend attack-graph classes; it never calls AWS.
 - `scripts/collect_baseline_evidence.py` — a read-only evaluator for the deployed S3, IAM, VPC, and security-group baseline; it does not list or read S3 objects, retrieve secrets, or modify AWS.
 - `scripts/collect_s5_evidence.py` — a read-only evaluator for the private S5 instance-profile relationship; it reads no S3 object content or secret value and rejects a candidate path when the entry and network preconditions are absent.
+- `scripts/evaluate_s6_preconditions.py` — a deterministic local-only S6 precondition evaluator; it makes no AWS, network, service, metadata, or credential requests.
+- `runbooks/s6-precondition-only-design.md` — approved S6 design boundary; no S6 deployment is authorised by this document.
 - `tests/` — automated tests for local fixtures and the evaluator path-precondition logic.
 - `terraform/` — reviewed, tagged, non-production baseline infrastructure. Do not apply it before following `runbooks/cloud-deployment.md`.
 - `iam/` — policy templates for reviewed scenario identities; templates are not ready to attach until all placeholders are replaced and validated in the IAM console.

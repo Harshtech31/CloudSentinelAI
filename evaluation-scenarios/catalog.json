@@ -48,18 +48,19 @@
     {
       "id": "S5",
       "name": "Multi-stage candidate path",
-      "status": "executed_private_relationship_no_candidate_path",
+      "status": "executed_evidence_collected_and_torn_down",
       "focus": ["relationship_evidence", "candidate_path_precondition_rejection"],
-      "deployment_boundary": "One private t3.micro test EC2 instance with no public IP, no ingress or egress, no Internet or NAT route, a metadata-only secret, and one non-sensitive S3 object.",
-      "execution_note": "Read-only evidence verified the private instance-profile relationship to the synthetic object and secret metadata. No candidate path was asserted because the workload had no publicly reachable entry point, Internet or NAT route, security-group egress, or metadata hop limit greater than one.",
+      "deployment_boundary": "One temporary private t3.micro test EC2 instance with no public IP, no ingress or egress, no Internet or NAT route, a metadata-only secret, and one non-sensitive S3 object.",
+      "execution_note": "Read-only evidence verified the private instance-profile relationship to the synthetic object and secret metadata. No candidate path was asserted because the workload had no publicly reachable entry point, Internet or NAT route, security-group egress, or metadata hop limit greater than one. Terraform teardown then removed all S5-only resources and restored the shared role policy.",
       "ground_truth_file": "ground-truth/catalog.json"
     },
     {
       "id": "S6",
       "name": "SSRF-to-IAM credential-access candidate path",
-      "status": "design",
+      "status": "approved_precondition_only_design_no_deployment",
       "focus": ["candidate_path_preconditions", "identity_relationships", "path_invalidity_conditions"],
-      "deployment_boundary": "Instrumented non-production test service only; no production credentials, sensitive data, or public exposure.",
+      "deployment_boundary": "Local precondition-only graph analysis; no S6 service, workload, metadata request, credential, sensitive data, or public exposure is deployed.",
+      "execution_note": "The approved design deliberately models all SSRF-to-IAM transitions as blocked unless separately evidenced. No AWS deployment or exploit-oriented request is authorised in this phase.",
       "ground_truth_file": "ground-truth/catalog.json"
     }
   ]

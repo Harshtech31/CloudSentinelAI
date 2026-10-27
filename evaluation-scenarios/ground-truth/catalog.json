@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "review_status": "s5_executed_private_relationship_s6_requires_separate_pre_deployment_review",
+  "review_status": "s5_completed_and_torn_down_s6_design_approved_no_deployment",
   "scenarios": [
     {
       "id": "S1",
