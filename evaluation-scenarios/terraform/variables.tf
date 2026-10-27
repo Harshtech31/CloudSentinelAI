@@ -37,6 +37,12 @@ variable "enable_s2_bucket_wildcard_scenario" {
   default     = false
 }
 
+variable "enable_s4_disabled_trail_scenario" {
+  description = "Create a dedicated, disabled CloudTrail test trail with a private encrypted log bucket."
+  type        = bool
+  default     = false
+}
+
 variable "scenario_suffix" {
   description = "Lowercase account-local suffix for deterministic test resource names."
   type        = string

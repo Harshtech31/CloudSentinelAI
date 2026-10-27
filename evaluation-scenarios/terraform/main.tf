@@ -16,7 +16,9 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  bucket_name = "cloudsentinel-eval-${data.aws_caller_identity.current.account_id}-${var.scenario_suffix}-s1"
+  bucket_name    = "cloudsentinel-eval-${data.aws_caller_identity.current.account_id}-${var.scenario_suffix}-s1"
+  s4_bucket_name = "cloudsentinel-eval-${data.aws_caller_identity.current.account_id}-${var.scenario_suffix}-s4-logs"
+  s4_trail_name  = "cloudsentinel-eval-${var.scenario_suffix}-s4-disabled"
   scenario_role_actions = var.enable_s2_bucket_wildcard_scenario ? [
     "s3:*",
     ] : [
@@ -69,6 +71,96 @@ resource "aws_s3_bucket_policy" "scenario_s1_public_read" {
   count  = var.enable_s1_public_control_scenario ? 1 : 0
   bucket = aws_s3_bucket.scenario_s1.id
   policy = data.aws_iam_policy_document.scenario_s1_public_read[0].json
+}
+
+# S4 is a dedicated disabled-trail configuration fixture. It never enables
+# logging in this phase, and its private log bucket receives no objects.
+resource "aws_s3_bucket" "scenario_s4_logs" {
+  count         = var.enable_s4_disabled_trail_scenario ? 1 : 0
+  bucket        = local.s4_bucket_name
+  force_destroy = false
+
+  tags = {
+    Scenario       = "S4"
+    SafetyBoundary = "DisabledTrailNoLogs"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "scenario_s4_logs" {
+  count  = var.enable_s4_disabled_trail_scenario ? 1 : 0
+  bucket = aws_s3_bucket.scenario_s4_logs[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "scenario_s4_logs" {
+  count  = var.enable_s4_disabled_trail_scenario ? 1 : 0
+  bucket = aws_s3_bucket.scenario_s4_logs[0].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+data "aws_iam_policy_document" "scenario_s4_logs" {
+  count = var.enable_s4_disabled_trail_scenario ? 1 : 0
+
+  statement {
+    sid     = "CloudTrailAclCheck"
+    effect  = "Allow"
+    actions = ["s3:GetBucketAcl"]
+    resources = [
+      aws_s3_bucket.scenario_s4_logs[0].arn,
+    ]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid     = "CloudTrailWriteOnly"
+    effect  = "Allow"
+    actions = ["s3:PutObject"]
+    resources = [
+      "${aws_s3_bucket.scenario_s4_logs[0].arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+    ]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "scenario_s4_logs" {
+  count  = var.enable_s4_disabled_trail_scenario ? 1 : 0
+  bucket = aws_s3_bucket.scenario_s4_logs[0].id
+  policy = data.aws_iam_policy_document.scenario_s4_logs[0].json
+}
+
+resource "aws_cloudtrail" "scenario_s4_disabled" {
+  count = var.enable_s4_disabled_trail_scenario ? 1 : 0
+
+  name                          = local.s4_trail_name
+  s3_bucket_name                = aws_s3_bucket.scenario_s4_logs[0].id
+  enable_logging                = false
+  include_global_service_events = false
+  is_multi_region_trail         = false
+  enable_log_file_validation    = false
+
+  depends_on = [aws_s3_bucket_policy.scenario_s4_logs]
+
+  tags = {
+    Scenario       = "S4"
+    SafetyBoundary = "DisabledTrailNoLogs"
+  }
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "scenario_s1" {

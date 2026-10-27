@@ -17,3 +17,8 @@ output "scenario_s3_security_group_id" {
   description = "Unattached S3 configuration-analysis security group ID."
   value       = aws_security_group.scenario_s3.id
 }
+
+output "scenario_s4_trail_name" {
+  description = "Dedicated disabled S4 CloudTrail test trail name, if enabled."
+  value       = try(aws_cloudtrail.scenario_s4_disabled[0].name, null)
+}

@@ -39,6 +39,33 @@
       "Resource": "arn:aws:s3:::cloudsentinel-eval-*"
     },
     {
+      "Sid": "DisabledCloudTrailScenarioOnly",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:CreateTrail",
+        "cloudtrail:DeleteTrail",
+        "cloudtrail:GetEventSelectors",
+        "cloudtrail:GetInsightSelectors",
+        "cloudtrail:GetTrail",
+        "cloudtrail:GetTrailStatus",
+        "cloudtrail:ListTags",
+        "cloudtrail:AddTags",
+        "cloudtrail:RemoveTags"
+      ],
+      "Resource": "arn:aws:cloudtrail:ap-south-2:*:trail/cloudsentinel-eval-*"
+    },
+    {
+      "Sid": "DescribeCloudTrailInEvaluationRegion",
+      "Effect": "Allow",
+      "Action": "cloudtrail:DescribeTrails",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-south-2"
+        }
+      }
+    },
+    {
       "Sid": "TestRoleOnly",
       "Effect": "Allow",
       "Action": [

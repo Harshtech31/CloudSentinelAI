@@ -39,9 +39,10 @@
     {
       "id": "S4",
       "name": "Disabled CloudTrail logging",
-      "status": "design",
+      "status": "executed_dedicated_disabled_trail",
       "focus": ["finding_detection", "remediation_guidance"],
-      "deployment_boundary": "Dedicated test account and recorded time window only.",
+      "deployment_boundary": "Dedicated disabled test trail and private encrypted log bucket only; no existing account trail was stopped or modified.",
+      "execution_note": "The trail reported IsLogging=false and had never been enabled; no log objects were generated.",
       "ground_truth_file": "ground-truth/catalog.json"
     },
     {
