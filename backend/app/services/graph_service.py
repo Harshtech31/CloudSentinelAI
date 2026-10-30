@@ -179,7 +179,10 @@ def build_security_graph(
             )
 
         # Attach SGs to EC2
-        for sg_id in ec2.get("security_groups", []):
+        for sg_item in ec2.get("security_groups", []):
+            sg_id = sg_item.get("id") if isinstance(sg_item, dict) else str(sg_item)
+            if not sg_id:
+                continue
             if sg_id in builder.nodes:
                 builder.add_edge(inst_id, sg_id, EdgeType.ATTACHED_SG)
             if sg_id in attack_graph.nodes:
