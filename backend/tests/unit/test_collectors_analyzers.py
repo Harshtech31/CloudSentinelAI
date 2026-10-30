@@ -303,27 +303,34 @@ class TestAnalyzerContract:
 
 
 # ---------------------------------------------------------------------------
-# Rule skeletons: Phase 1 contract is "wired but produce no findings"
+# Rule analyzers: Phase 2/3 real rule evaluation
 # ---------------------------------------------------------------------------
 
 
-class TestRuleSkeletons:
-    def test_iam_analyzer_runs_all_rules_without_findings(self):
+class TestRealSecurityRuleAnalyzers:
+    def test_iam_analyzer_detects_misconfigurations(self):
         findings = IAMAnalyzer().analyze(sample_iam_resources())
-        assert findings == []
+        assert len(findings) > 0
+        rule_ids = {f.rule_id for f in findings}
+        assert "AWS-IAM-001" in rule_ids or "AWS-IAM-002" in rule_ids
 
-    def test_networking_analyzer_runs_all_rules_without_findings(self):
+    def test_networking_analyzer_runs_cleanly(self):
         findings = NetworkingAnalyzer().analyze(sample_network_resources())
-        assert findings == []
+        assert isinstance(findings, list)
 
-    def test_storage_and_encryption_analyzers_run_without_findings(self):
-        assert StorageAnalyzer().analyze(sample_storage_resources()) == []
-        assert EncryptionAnalyzer().analyze(sample_storage_resources()) == []
+    def test_storage_and_encryption_analyzers_evaluate_findings(self):
+        storage_findings = StorageAnalyzer().analyze(sample_storage_resources())
+        encryption_findings = EncryptionAnalyzer().analyze(sample_storage_resources())
+        assert isinstance(storage_findings, list)
+        assert isinstance(encryption_findings, list)
+        assert len(storage_findings) > 0
 
-    def test_compliance_stub_reports_full_score_on_no_findings(self):
+    def test_compliance_analyzer_reports_score_and_checks(self):
         compliance = ComplianceAnalyzer()
-        assert compliance.analyze({}) == []
         assert compliance.compliance_score([]) == 100.0
+        findings = compliance.analyze({})
+        assert len(findings) > 0
+        assert any(f.rule_id == "AWS-CIS-3.1" for f in findings)
 
 
 # ---------------------------------------------------------------------------
@@ -374,14 +381,17 @@ class TestMisconfigurationOrchestrator:
                 raise RuntimeError("AWS throttled")
 
         orchestrator = MisconfigurationOrchestrator(analyzers=[ExplodingAnalyzer(), IAMAnalyzer()])
-        assert orchestrator.run(sample_iam_resources()) == []
+        findings = orchestrator.run(sample_iam_resources())
+        assert isinstance(findings, list)
+        assert len(findings) > 0
 
-    def test_run_against_realistic_resources_yields_no_findings_in_phase_1(self):
+    def test_run_against_realistic_resources_yields_findings_in_phase_2(self):
         resources: dict[str, list[dict[str, Any]]] = {}
         resources.update(sample_iam_resources())
         resources.update(sample_network_resources())
         resources.update(sample_storage_resources())
-        assert MisconfigurationOrchestrator().run(resources) == []
+        findings = MisconfigurationOrchestrator().run(resources)
+        assert len(findings) > 0
 
 
 # ---------------------------------------------------------------------------
