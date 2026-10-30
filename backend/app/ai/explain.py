@@ -1,13 +1,10 @@
 """
 Explain Facade for CloudSentinel AI.
 
-One entry point for the rest of the app: `explain_finding()` /
-`explain_attack_path()` pick the first available provider, generate the
-prompt, and degrade gracefully to static text when no LLM is reachable.
-
-Phase 1 stub: facade + fallback behavior with provider selection logic
-in place. Phase 3 adds response caching and token accounting
-(roadmap_part3_risk_ai_dashboard.md).
+One entry point for the rest of the application: `explain_finding()` and
+`explain_attack_path()` pick the first available provider (Bedrock, OpenAI, Ollama),
+generate prompts, extract actionable remediation steps, and degrade gracefully to
+deterministic static guidance when no LLM is reachable.
 """
 
 from typing import Any
@@ -21,7 +18,6 @@ from app.ai import (
 from app.ai.prompts import render_prompt
 from app.core.logging import logger
 
-# Static fallback so the UI never shows an empty explanation card.
 _FALLBACK_FINDING = (
     "No AI provider is configured. {title} ({rule_id}) was flagged {severity} "
     "on {resource_id}. Review the resource against the rule guidance and apply "
@@ -32,6 +28,43 @@ _FALLBACK_PATH = (
     "{hops} steps; the weakest link is {weakest_link}. Restrict the entry point "
     "and enforce guardrails on the flagged resources."
 )
+
+
+def get_default_providers() -> list[BaseAIProvider]:
+    """Discover and return configured, active AI providers in priority order."""
+    active: list[BaseAIProvider] = []
+
+    # 1. Amazon Bedrock (Primary: Claude Haiku 4.5 / Nova)
+    try:
+        from app.ai.providers.bedrock import BedrockProvider
+
+        bedrock = BedrockProvider()
+        if bedrock.is_available():
+            active.append(bedrock)
+    except Exception as exc:
+        logger.debug("BedrockProvider initialization skipped: %s", exc)
+
+    # 2. OpenAI
+    try:
+        from app.ai.providers.openai import OpenAIProvider
+
+        openai_p = OpenAIProvider()
+        if openai_p.is_available():
+            active.append(openai_p)
+    except Exception as exc:
+        logger.debug("OpenAIProvider initialization skipped: %s", exc)
+
+    # 3. Ollama (local)
+    try:
+        from app.ai.providers.ollama import OllamaProvider
+
+        ollama_p = OllamaProvider()
+        if ollama_p.is_available():
+            active.append(ollama_p)
+    except Exception as exc:
+        logger.debug("OllamaProvider initialization skipped: %s", exc)
+
+    return active
 
 
 def explain_finding(
@@ -70,20 +103,20 @@ def _explain_with_fallback(
     providers: list[BaseAIProvider] | None,
 ) -> Explanation:
     """Try each provider in order; fall back to static text."""
+    resolved_providers = providers if providers is not None else get_default_providers()
     last_error: AIProviderError | None = None
-    for provider in providers or []:
+
+    for provider in resolved_providers:
         if not provider.is_available():
             logger.debug("Provider %s unavailable; skipping", provider.name)
             continue
         try:
             explanation = provider.explain(request)
-            explanation.text = (
-                render_prompt(request.kind, request.context) + "\n\n" + explanation.text
-            )
             return explanation
         except AIProviderError as exc:
             last_error = exc
             logger.warning("Provider %s failed: %s", provider.name, exc)
+
     return _static_fallback(request, facts, last_error)
 
 
@@ -117,4 +150,4 @@ def _static_fallback(
     )
 
 
-__all__ = ["explain_finding", "explain_attack_path"]
+__all__ = ["explain_finding", "explain_attack_path", "get_default_providers"]

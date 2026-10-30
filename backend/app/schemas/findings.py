@@ -39,6 +39,9 @@ class FindingResponse(BaseModel):
         description="Recommended remediation action",
         example="Enable hardware or virtual MFA for the AWS root account.",
     )
+    ai_explanation: str | None = Field(
+        None, description="AI-generated contextual explanation from Bedrock", example="This finding exposes..."
+    )
     status: str = Field("open", description="Finding lifecycle status", example="open")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Detection timestamp")
 
@@ -72,3 +75,46 @@ class FindingListResponse(BaseModel):
     page: int = Field(1, description="Current page number", example=1)
     limit: int = Field(50, description="Items per page", example=50)
     findings: list[FindingResponse] = Field(default_factory=list, description="List of findings")
+
+
+class FindingExplainResponse(BaseModel):
+    """AI-powered natural language explanation and remediation playbook."""
+
+    finding_id: str = Field(..., description="Finding ID", example="fnd_123")
+    explanation: str = Field(..., description="Contextual analysis and attack implications")
+    remediation_steps: list[str] = Field(default_factory=list, description="Ordered step-by-step mitigation actions")
+    provider: str = Field("bedrock", description="AI provider used", example="bedrock")
+    model: str = Field("us.anthropic.claude-haiku-4-5-20251001-v1:0", description="LLM model ID")
+    tokens_used: int = Field(0, description="Total prompt and completion tokens")
+
+
+class ComplianceControlStatus(BaseModel):
+    """Individual CIS benchmark control status."""
+
+    control_id: str = Field(..., description="Control identifier (e.g. 1.5, 2.1.5)")
+    framework: str = Field("CIS AWS Benchmark v1.5", description="Compliance standard")
+    description: str = Field(..., description="Requirement description")
+    status: str = Field("PASSED", description="Control status: PASSED or FAILED")
+    severity: str = Field("MEDIUM", description="Control severity if failing")
+
+
+class ComplianceReportResponse(BaseModel):
+    """Overall compliance assessment report."""
+
+    framework: str = Field("CIS AWS Benchmark v1.5", description="Framework evaluated")
+    compliance_score: float = Field(..., description="Overall compliance pass percentage (0-100%)", example=85.0)
+    total_controls: int = Field(..., description="Total controls evaluated", example=20)
+    passed_controls: int = Field(..., description="Passed controls count", example=17)
+    failed_controls: int = Field(..., description="Failed controls count", example=3)
+    controls: list[ComplianceControlStatus] = Field(default_factory=list, description="Control status breakdown")
+
+
+__all__ = [
+    "FindingResponse",
+    "FindingStatsResponse",
+    "FindingUpdateRequest",
+    "FindingListResponse",
+    "FindingExplainResponse",
+    "ComplianceControlStatus",
+    "ComplianceReportResponse",
+]
