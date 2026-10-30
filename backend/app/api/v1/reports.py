@@ -192,12 +192,7 @@ async def list_reports(
             return ReportListResponse(reports=[])
         reports, _ = report_repo.list_for_scan(scan_id, page=page, limit=limit)
     else:
-        if user.role == "admin":
-            # Admins see reports across all scans
-            reports = db.query(report_repo.db.query(ReportRepository).all()) if False else []
-            reports, _ = report_repo.list_for_user(user.id, page=page, limit=limit)
-        else:
-            reports, _ = report_repo.list_for_user(user.id, page=page, limit=limit)
+        reports, _ = report_repo.list_for_user(user.id, page=page, limit=limit)
 
     return ReportListResponse(
         reports=[

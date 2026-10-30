@@ -34,24 +34,60 @@ class FindingRepository:
         """
         import json
 
-        rows = [
-            Finding(
-                scan_id=scan_id,
-                rule_id=raw.rule_id,
-                title=raw.title,
-                description=raw.description,
-                severity=raw.severity,
-                risk_score=0.0,  # risk scoring lands with the risk engine wire-up
-                resource_type=raw.resource_type,
-                resource_id=raw.resource_id,
-                resource_arn=raw.resource_arn,
-                region=raw.region,
-                remediation=raw.remediation,
-                remediation_url=raw.remediation_url,
-                metadata_json=json.dumps(raw.metadata) if raw.metadata else None,
+        from app.risk_engine.calculator import RiskCalculator
+        from app.risk_engine.context import Exposure, Privilege, RiskContext, Sensitivity
+
+        calculator = RiskCalculator()
+        rows = []
+        for raw in raw_findings:
+            text_context = (raw.title + " " + raw.description).lower()
+            exposure = (
+                Exposure.PUBLIC
+                if "public" in text_context or raw.severity == Severity.CRITICAL
+                else Exposure.INTERNAL
             )
-            for raw in raw_findings
-        ]
+            privilege = (
+                Privilege.ADMIN
+                if "admin" in text_context or "iam" in raw.rule_id.lower()
+                else Privilege.WRITE
+            )
+            ctx = RiskContext(
+                resource_id=raw.resource_id,
+                resource_type=raw.resource_type,
+                exposure=exposure,
+                sensitivity=Sensitivity.PRODUCTION,
+                privilege=privilege,
+            )
+            try:
+                score_obj = calculator.score((raw.severity, ctx))
+                r_score = score_obj.score
+            except Exception:
+                sev_map = {
+                    Severity.CRITICAL: 9.0,
+                    Severity.HIGH: 7.0,
+                    Severity.MEDIUM: 4.5,
+                    Severity.LOW: 2.0,
+                    Severity.INFO: 0.5,
+                }
+                r_score = sev_map.get(raw.severity, 0.0)
+
+            rows.append(
+                Finding(
+                    scan_id=scan_id,
+                    rule_id=raw.rule_id,
+                    title=raw.title,
+                    description=raw.description,
+                    severity=raw.severity,
+                    risk_score=r_score,
+                    resource_type=raw.resource_type,
+                    resource_id=raw.resource_id,
+                    resource_arn=raw.resource_arn,
+                    region=raw.region,
+                    remediation=raw.remediation,
+                    remediation_url=raw.remediation_url,
+                    metadata_json=json.dumps(raw.metadata) if raw.metadata else None,
+                )
+            )
         self.db.add_all(rows)
         self.db.commit()
         return rows

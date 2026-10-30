@@ -28,3 +28,23 @@ class ReadinessResponse(BaseModel):
             "graph_engine": "ready",
         },
     )
+
+
+class DeepHealthResponse(BaseModel):
+    """Deep health check response checking DB and AI engine connectivity."""
+
+    status: str = Field(..., description="Overall deep health status", example="healthy")
+    database: str = Field(..., description="Database connection status", example="connected")
+    ai_provider: str = Field(..., description="Configured AI provider", example="bedrock")
+    components: dict[str, str] = Field(
+        ...,
+        description="Component status dictionary",
+    )
+
+
+class VersionResponse(BaseModel):
+    """Application version schema."""
+
+    version: str = Field(..., description="Application version string", example="1.0.0")
+    service: str = Field(..., description="Application service name", example="CloudSentinel AI")
+    environment: str = Field(..., description="Deployment environment", example="development")

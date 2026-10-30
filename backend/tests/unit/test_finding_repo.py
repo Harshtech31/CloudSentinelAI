@@ -73,6 +73,20 @@ class TestBulkCreate:
     def test_bulk_insert_empty_list_is_noop(self, repo: FindingRepository, scan_id: str) -> None:
         assert repo.bulk_create_from_raw(scan_id, []) == []
 
+    def test_bulk_insert_calculates_contextual_risk_score(
+        self, repo: FindingRepository, scan_id: str
+    ) -> None:
+        rows = repo.bulk_create_from_raw(
+            scan_id,
+            [
+                _raw(severity=Severity.CRITICAL, title="Public Admin IAM Role"),
+                _raw(severity=Severity.LOW, title="Internal S3 Bucket Logging"),
+            ],
+        )
+        assert rows[0].risk_score > rows[1].risk_score
+        assert rows[0].risk_score >= 8.0
+        assert rows[1].risk_score <= 5.0
+
     def test_optional_fields_default_to_none(self, repo: FindingRepository, scan_id: str) -> None:
         (row,) = repo.bulk_create_from_raw(
             scan_id,

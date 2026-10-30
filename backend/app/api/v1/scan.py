@@ -51,15 +51,19 @@ def _get_scan_or_404(db: Session, scan_id: str, user: User):
     return scan
 
 
+from app.services.graph_service import graph_store
+
+
 def _summary_for(db: Session, scan) -> ScanSummaryResponse:
     counts = FindingRepository(db).count_by_severity(scan_id=scan.id)
+    attack_count = graph_store.get_stats(scan.id).attack_paths_count
     return ScanSummaryResponse(
         scan_id=scan.id,
         status=scan.status,
         total_findings=counts["total"],
         critical_findings=counts["critical"],
         high_findings=counts["high"],
-        attack_paths_count=0,  # attack-path extraction is the Lead's Phase 2 wire-up
+        attack_paths_count=attack_count,
     )
 
 
@@ -112,6 +116,12 @@ async def start_scan(
     status_code=status.HTTP_200_OK,
     summary="List Scans for Current User",
     description="Paginated scans belonging to the authenticated user, newest first.",
+)
+@router.get(
+    "s",
+    response_model=ScanListResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
 )
 async def list_scans(
     page: int = Query(1, ge=1, description="Page number"),
