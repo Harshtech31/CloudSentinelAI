@@ -119,34 +119,23 @@ def _analyze_stage(
     return analyzer.run(resources)
 
 
-def _graph_stage(resources: dict[str, list[dict[str, Any]]]) -> int:
-    """Ingest collected resources into the knowledge graph.
+def _graph_stage(
+    resources: dict[str, list[dict[str, Any]]],
+    scan_id: str | None = None,
+    findings: list[RawFinding] | None = None,
+) -> int:
+    """Ingest collected resources into knowledge graph and attack engine.
 
-    Returns the node count. The knowledge graph gives the Lead's graph
-    endpoint data the moment a scan completes; attack-path extraction
-    from this graph arrives with the Lead's Phase 2 wire-up, and the
-    scan summary reports zero attack paths until then (never fake data).
+    Returns the node count and caches the Cytoscape graph elements
+    and discovered attack chains in graph_store.
     """
-    builder = GraphBuilder()
-    for resource_key, items in resources.items():
-        node_type = _node_type_for(resource_key)
-        for item in items:
-            resource_id = str(item.get("arn") or item.get("id") or "")
-            if not resource_id:
-                continue
-            builder.add_node(
-                resource_id,
-                label=str(item.get("name") or resource_id),
-                node_type=node_type,
-                arn=item.get("arn"),
-                region=item.get("region"),
-                properties={
-                    k: v for k, v in item.items() if isinstance(v, (str, int, float, bool))
-                },
-            )
-    graph_dict = builder.to_dict()
-    node_count = len(graph_dict["nodes"])
-    logger.info("Knowledge graph built: %d node(s)", node_count)
+    from app.services.graph_service import build_security_graph, graph_store
+
+    builder, _, attack_chains = build_security_graph(resources, findings=findings)
+    if scan_id:
+        graph_store.save_scan_graph(scan_id, builder, attack_chains)
+    node_count = len(builder.nodes)
+    logger.info("Knowledge graph built: %d node(s), %d attack chain(s)", node_count, len(attack_chains))
     return node_count
 
 
@@ -209,8 +198,8 @@ def run_scan_task(
             raw_findings = _analyze_stage(resources, analyzer)
             repos.update_progress(scan, 60)
 
-            # Stage 3: knowledge graph
-            node_count = _graph_stage(resources)
+            # Stage 3: knowledge graph & attack engine
+            node_count = _graph_stage(resources, scan_id=scan_id, findings=raw_findings)
             repos.update_progress(scan, 75)
 
             # Stage 4: persist findings

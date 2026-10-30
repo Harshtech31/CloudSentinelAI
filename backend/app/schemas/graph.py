@@ -58,3 +58,36 @@ class GraphResponse(BaseModel):
 
     elements: CytoscapeElements
     stats: GraphStatsResponse
+
+
+class AttackChainItem(BaseModel):
+    """Discovered multi-hop attack trajectory."""
+
+    id: str = Field(..., description="Attack chain ID", example="chain_01")
+    entry_point: str = Field(..., description="Initial entry asset ID", example="internet")
+    target: str = Field(..., description="Crown-jewel asset target ID", example="arn:aws:s3:::confidential")
+    path: list[str] = Field(..., description="Ordered list of traversed node IDs")
+    length: int = Field(..., description="Number of hops in path", example=4)
+    risk_score: float = Field(..., description="Composite CVSS risk score (0.0 - 10.0)", example=8.9)
+    severity: str = Field("HIGH", description="Attack chain severity classification", example="CRITICAL")
+    description: str = Field("", description="Natural language summary of the attack chain")
+
+
+class AttackChainsResponse(BaseModel):
+    """List of all discovered attack chains with risk rankings."""
+
+    total_chains: int = Field(0, description="Total attack chains found")
+    chains: list[AttackChainItem] = Field(default_factory=list, description="Ranked attack chains")
+
+
+__all__ = [
+    "CytoscapeNodeData",
+    "CytoscapeNode",
+    "CytoscapeEdgeData",
+    "CytoscapeEdge",
+    "CytoscapeElements",
+    "GraphStatsResponse",
+    "GraphResponse",
+    "AttackChainItem",
+    "AttackChainsResponse",
+]
