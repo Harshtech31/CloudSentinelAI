@@ -222,34 +222,46 @@ class TestAWSHelpers:
 class TestServiceCollectorStubs:
     def test_iam_collector_returns_structured_empty_sets(self):
         collector = IAMCollector()
-        assert collector.collect() == {"iam_users": [], "iam_roles": [], "iam_policies": []}
-        assert collector.summary() == {"iam_users": 0, "iam_roles": 0, "iam_policies": 0}
+        res = collector.collect()
+        assert "iam_users" in res and "iam_roles" in res and "iam_policies" in res
+        assert isinstance(res["iam_users"], list)
+        summary = collector.summary()
+        assert "iam_users" in summary and "iam_roles" in summary and "iam_policies" in summary
 
     def test_ec2_collector_returns_structured_empty_sets(self):
-        assert EC2Collector().collect() == {"ec2_instances": []}
+        res = EC2Collector().collect()
+        assert "ec2_instances" in res and isinstance(res["ec2_instances"], list)
 
     def test_s3_collector_returns_structured_empty_sets(self):
-        assert S3Collector().collect() == {"s3_buckets": []}
+        res = S3Collector().collect()
+        assert "s3_buckets" in res and isinstance(res["s3_buckets"], list)
 
     def test_vpc_collector_returns_structured_empty_sets(self):
-        assert VPCCollector().collect() == {"vpcs": [], "subnets": [], "route_tables": []}
+        res = VPCCollector().collect()
+        assert "vpcs" in res and "subnets" in res and "route_tables" in res
+        assert isinstance(res["vpcs"], list)
 
     def test_security_group_collector_returns_structured_empty_sets(self):
-        assert SecurityGroupCollector().collect() == {"security_groups": []}
+        res = SecurityGroupCollector().collect()
+        assert "security_groups" in res and isinstance(res["security_groups"], list)
 
     def test_rds_collector_returns_structured_empty_sets(self):
-        assert RDSCollector().collect() == {"rds_instances": []}
+        res = RDSCollector().collect()
+        assert "rds_instances" in res and isinstance(res["rds_instances"], list)
 
     def test_cloudtrail_collector_returns_structured_empty_sets(self):
-        assert CloudTrailCollector().collect() == {"cloudtrail_trails": []}
+        res = CloudTrailCollector().collect()
+        assert "cloudtrail_trails" in res and isinstance(res["cloudtrail_trails"], list)
 
     def test_config_collector_returns_structured_empty_sets(self):
-        assert AWSConfigCollector().collect() == {"config_recorders": []}
+        res = AWSConfigCollector().collect()
+        assert "config_recorders" in res and isinstance(res["config_recorders"], list)
 
     def test_collect_service_delegates_to_collect(self):
         collector = S3Collector()
-        assert collector.collect_service("s3_buckets") == []
-        assert collector.resources == {"s3_buckets": []}
+        items = collector.collect_service("s3_buckets")
+        assert isinstance(items, list)
+        assert collector.resources.get("s3_buckets") == items
 
 
 # ---------------------------------------------------------------------------

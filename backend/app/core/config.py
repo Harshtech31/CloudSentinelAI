@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """Global application settings and environment variable bindings."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
@@ -88,6 +88,10 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3.1"
     AWS_BEDROCK_REGION: str = "us-east-1"
+    AWS_BEDROCK_ACCESS_KEY_ID: str = ""
+    AWS_BEDROCK_SECRET_ACCESS_KEY: str = ""
+    AWS_BEDROCK_PROFILE: str = ""
+    BEDROCK_MODEL_ID: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
     # Redis
     REDIS_URL: str = "redis://redis:6379/0"
