@@ -27,12 +27,19 @@ export interface UserResponse {
   full_name: string;
   role: string;
   is_active: boolean;
+  is_onboarded: boolean;
   created_at: string;
 }
 
 /** POST /auth/register — creates new user account. */
 export async function registerRequest(payload: RegisterPayload): Promise<UserResponse> {
   const { data } = await api.post<UserResponse>('/auth/register', payload);
+  return data;
+}
+
+/** GET /auth/me — gets current authenticated user profile. */
+export async function getCurrentUser(): Promise<UserResponse> {
+  const { data } = await api.get<UserResponse>('/auth/me');
   return data;
 }
 

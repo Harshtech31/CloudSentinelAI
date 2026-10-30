@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
   getOnboardingStatus,
   getIamPolicy,
@@ -12,6 +13,7 @@ import {
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const { user, logout, setIsOnboarded, isOnboarded } = useAuth();
 
   // Wizard Step: 1 = IAM Policy, 2 = AWS Keys, 3 = AI Provider, 4 = Review & Audit
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -59,6 +61,18 @@ export default function OnboardingPage() {
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleDownloadPolicy = () => {
+    const blob = new Blob([iamPolicyText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cloudsentinel_audit_iam_policy.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Test AWS Connection
   const handleTestAws = async () => {
     if (!accessKeyId.trim() || !secretAccessKey.trim()) {
@@ -81,7 +95,7 @@ export default function OnboardingPage() {
     } catch (err: any) {
       setAwsResult({
         is_valid: false,
-        error_message: err.response?.data?.detail || err.message || 'Failed to reach validation service.',
+        error_message: err.response?.data?.detail || err.message || 'AWS authentication check failed.',
       });
     } finally {
       setIsTestingAws(false);
@@ -104,14 +118,36 @@ export default function OnboardingPage() {
       setAiResult({
         is_valid: false,
         provider: aiProvider,
-        error_message: err.response?.data?.detail || err.message || 'AI validation failed.',
+        error_message: err.response?.data?.detail || err.message || 'AI credential check failed.',
       });
     } finally {
       setIsTestingAi(false);
     }
   };
 
-  // Submit & Save Onboarding
+  // Step 2 Next Guard
+  const handleStep2Next = () => {
+    if (!awsResult?.is_valid) {
+      handleTestAws();
+      return;
+    }
+    setStep(3);
+  };
+
+  // Step 3 Next Guard
+  const handleStep3Next = () => {
+    if (aiProvider === 'openai' && !openaiKey.trim()) {
+      setAiResult({ is_valid: false, provider: 'openai', error_message: 'OpenAI API Key is required.' });
+      return;
+    }
+    if (aiProvider === 'anthropic' && !anthropicKey.trim()) {
+      setAiResult({ is_valid: false, provider: 'anthropic', error_message: 'Anthropic API Key is required.' });
+      return;
+    }
+    setStep(4);
+  };
+
+  // Final submission
   const handleComplete = async () => {
     setIsSubmitting(true);
     setSubmitError(null);
@@ -128,6 +164,7 @@ export default function OnboardingPage() {
         anthropic_model: anthropicModel,
         trigger_initial_scan: triggerScan,
       });
+      setIsOnboarded(true);
       navigate(triggerScan ? '/scan' : '/');
     } catch (err: any) {
       setSubmitError(err.response?.data?.detail || err.message || 'Could not complete onboarding.');
@@ -137,575 +174,590 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div style={{ maxWidth: '860px', margin: '24px auto', padding: '0 16px', animation: 'tabFade 0.2s ease-out' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#FFF', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
-          Connect Your Cloud &amp; AI Provider
-        </h1>
-        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
-          Configure least-privilege AWS audit credentials and select your preferred LLM provider for live posture analysis.
-        </p>
-      </div>
-
-      {/* Stepper Progress Bar */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
-        {[
-          { num: 1, label: '1. IAM Policy' },
-          { num: 2, label: '2. AWS Keys' },
-          { num: 3, label: '3. AI Provider' },
-          { num: 4, label: '4. Run Audit' },
-        ].map((s) => (
+    <div style={{ minHeight: '100vh', background: '#0B0F19', display: 'flex', flexDirection: 'column' }}>
+      {/* Standalone Brand Header */}
+      <header
+        style={{
+          height: '56px',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
-            key={s.num}
             style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-sm)',
-              background: step === s.num ? 'rgba(0, 229, 255, 0.12)' : 'var(--bg-panel)',
-              border: `1px solid ${step === s.num ? 'var(--cyan-bright)' : 'var(--border-subtle)'}`,
-              color: step === s.num ? 'var(--cyan-bright)' : 'var(--text-tertiary)',
-              fontSize: '11.5px',
-              fontWeight: step === s.num ? 600 : 400,
-              textAlign: 'center',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.05))',
+              border: '1px solid rgba(0, 229, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--cyan-bright)',
             }}
           >
-            {s.label}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8">
+              <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z" />
+            </svg>
           </div>
-        ))}
-      </div>
-
-      {/* Step 1: IAM Policy Guidance */}
-      {step === 1 && (
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-            <span style={{ fontSize: '18px' }}>🛡️</span>
-            <div>
-              <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#FFF', margin: 0 }}>
-                Best Practice: Create a Dedicated IAM User
-              </h2>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-                Never provide AWS Root or Administrator keys. CloudSentinel only requires strictly read-only inspection permissions.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ background: 'rgba(255, 179, 0, 0.08)', border: '1px solid rgba(255, 179, 0, 0.25)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: '18px', fontSize: '11.5px', color: '#ffca28', lineHeight: 1.5 }}>
-            <strong>Recommendation:</strong> In your AWS Console, create a new IAM user named <code>cloudsentinel-auditor</code> with <em>Programmatic access only</em> (no AWS Console login password), and attach the read-only policy below.
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Least-Privilege Audit Policy JSON
-            </span>
-            <button
-              type="button"
-              className="btn btn-cyan"
-              style={{ fontSize: '11px', padding: '4px 10px' }}
-              onClick={handleCopyPolicy}
-            >
-              {copied ? '✓ Copied to Clipboard!' : 'Copy Policy JSON'}
-            </button>
-          </div>
-
-          <pre
+          <span style={{ fontWeight: 700, fontSize: '15px', color: '#FFF', letterSpacing: '-0.02em' }}>
+            CloudSentinel AI
+          </span>
+          <span
             style={{
-              background: '#0a0d14',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '14px',
-              fontSize: '11px',
-              color: 'var(--cyan-dim)',
-              maxHeight: '260px',
-              overflowY: 'auto',
-              fontFamily: 'var(--font-mono)',
+              background: 'rgba(0, 229, 255, 0.1)',
+              border: '1px solid rgba(0, 229, 255, 0.25)',
+              color: 'var(--cyan-bright)',
+              fontSize: '10px',
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: '4px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
             }}
           >
-            {iamPolicyText}
-          </pre>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-            <button
-              type="button"
-              className="btn btn-cyan"
-              onClick={() => setStep(2)}
-              style={{ padding: '8px 20px', fontSize: '12px' }}
-            >
-              I Have Created the Keys &rarr; Continue to Step 2
-            </button>
-          </div>
+            Account Onboarding
+          </span>
         </div>
-      )}
 
-      {/* Step 2: AWS Credentials Input & Test */}
-      {step === 2 && (
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#FFF', margin: '0 0 6px 0' }}>
-            Enter AWS Access Credentials
-          </h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 20px 0' }}>
-            Enter the Access Key ID and Secret Access Key generated for your dedicated audit user.
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                AWS Access Key ID *
-              </label>
-              <input
-                type="text"
-                placeholder="AKIAIOSFODNN7EXAMPLE"
-                value={accessKeyId}
-                onChange={(e) => {
-                  setAccessKeyId(e.target.value);
-                  setAwsResult(null);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: '#FFF',
-                  fontSize: '12px',
-                  fontFamily: 'var(--font-mono)',
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                AWS Secret Access Key *
-              </label>
-              <input
-                type="password"
-                placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                value={secretAccessKey}
-                onChange={(e) => {
-                  setSecretAccessKey(e.target.value);
-                  setAwsResult(null);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: '#FFF',
-                  fontSize: '12px',
-                  fontFamily: 'var(--font-mono)',
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                Primary AWS Region
-              </label>
-              <select
-                value={region}
-                onChange={(e) => {
-                  setRegion(e.target.value);
-                  setAwsResult(null);
-                }}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: '#FFF',
-                  fontSize: '12px',
-                }}
-              >
-                <option value="us-east-1">us-east-1 (N. Virginia)</option>
-                <option value="us-east-2">us-east-2 (Ohio)</option>
-                <option value="us-west-2">us-west-2 (Oregon)</option>
-                <option value="ap-south-1">ap-south-1 (Mumbai)</option>
-                <option value="eu-west-1">eu-west-1 (Ireland)</option>
-                <option value="ap-southeast-1">ap-southeast-1 (Singapore)</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                STS Session Token (Optional - for temporary STS roles)
-              </label>
-              <input
-                type="text"
-                placeholder="Optional session token"
-                value={sessionToken}
-                onChange={(e) => setSessionToken(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  background: 'var(--bg-base)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: '#FFF',
-                  fontSize: '12px',
-                  fontFamily: 'var(--font-mono)',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Test AWS Connection Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {isOnboarded && (
             <button
               type="button"
               className="btn btn-cyan"
-              onClick={handleTestAws}
-              disabled={isTestingAws || !accessKeyId.trim() || !secretAccessKey.trim()}
-              style={{ fontSize: '12px', padding: '8px 16px' }}
+              style={{ fontSize: '11.5px', padding: '5px 12px' }}
+              onClick={() => navigate('/')}
             >
-              {isTestingAws ? 'Verifying with AWS STS…' : '⚡ Test AWS Connection'}
+              &larr; Back to Dashboard
             </button>
-            <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-              Verifies account identity via <code>sts:GetCallerIdentity</code> before continuing.
-            </span>
-          </div>
-
-          {/* Verification Results */}
-          {awsResult && (
-            <div
-              style={{
-                borderRadius: 'var(--radius-sm)',
-                padding: '14px 18px',
-                marginBottom: '20px',
-                fontSize: '12px',
-                lineHeight: 1.5,
-                background: awsResult.is_valid ? 'rgba(0, 230, 118, 0.08)' : 'rgba(255, 23, 68, 0.08)',
-                border: `1px solid ${awsResult.is_valid ? 'rgba(0, 230, 118, 0.3)' : 'rgba(255, 23, 68, 0.3)'}`,
-                color: awsResult.is_valid ? 'var(--sev-low)' : 'var(--sev-crit)',
-              }}
-            >
-              {awsResult.is_valid ? (
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: '4px' }}>✓ Connection Verified Successfully!</div>
-                  <div style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-                    Account ID: <strong>{awsResult.account_id}</strong> &middot; Principal: {awsResult.arn}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: '4px' }}>✗ AWS Verification Failed (Cannot Proceed)</div>
-                  <div>{awsResult.error_message}</div>
-                  <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
-                    Check that your Access Key ID and Secret Access Key match your IAM User and that no trailing spaces exist.
-                  </div>
-                </div>
-              )}
-            </div>
           )}
-
-          {/* Navigation Controls */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
-            <button type="button" className="btn" onClick={() => setStep(1)} style={{ fontSize: '12px' }}>
-              &larr; Back to Policy
-            </button>
-            <button
-              type="button"
-              className="btn btn-cyan"
-              disabled={!awsResult || !awsResult.is_valid}
-              onClick={() => setStep(3)}
-              style={{
-                fontSize: '12px',
-                padding: '8px 20px',
-                opacity: (!awsResult || !awsResult.is_valid) ? 0.4 : 1,
-                cursor: (!awsResult || !awsResult.is_valid) ? 'not-allowed' : 'pointer',
-              }}
-            >
-              Credentials Verified &rarr; Choose AI Provider
-            </button>
+          <div
+            style={{
+              fontSize: '12px',
+              color: 'var(--text-secondary)',
+              background: 'rgba(255, 255, 255, 0.04)',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            {user?.email || 'User Session'}
           </div>
+          <button
+            type="button"
+            className="btn"
+            style={{ fontSize: '11px', padding: '5px 10px' }}
+            onClick={logout}
+          >
+            Sign out
+          </button>
         </div>
-      )}
+      </header>
 
-      {/* Step 3: AI Provider Selection & Testing */}
-      {step === 3 && (
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#FFF', margin: '0 0 6px 0' }}>
-            Select AI Remediation Engine
-          </h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 20px 0' }}>
-            Choose the LLM provider to power automated root cause explanations and Infrastructure-as-Code Terraform fixes.
-          </p>
+      {/* Main Wizard Content Area */}
+      <div style={{ flex: 1, padding: '32px 16px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '100%', maxWidth: '860px', animation: 'tabFade 0.2s ease-out' }}>
+          {/* Header Title */}
+          <div style={{ marginBottom: '28px', textAlign: 'center' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 700, color: '#FFF', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
+              Connect Your AWS Cloud &amp; AI Provider
+            </h1>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+              CloudSentinel requires least-privilege read-only AWS audit access and an AI model connection to perform posture evaluations.
+            </p>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+          {/* Stepper Progress Bar */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '28px' }}>
             {[
-              { id: 'bedrock', title: 'Amazon Bedrock', desc: 'Claude Haiku 4.5 / Nova via your AWS region', badge: 'Recommended' },
-              { id: 'openai', title: 'OpenAI API', desc: 'GPT-4o or GPT-4o-mini via direct API key', badge: 'BYO Key' },
-              { id: 'anthropic', title: 'Direct Anthropic', desc: 'Claude 3.5 Sonnet direct API key', badge: 'BYO Key' },
-              { id: 'default', title: 'Deterministic Rules', desc: 'Pre-computed static CIS remediation guides', badge: 'No AI Cost' },
-            ].map((p) => (
+              { num: 1, label: '1. IAM Policy & Download' },
+              { num: 2, label: '2. AWS Credentials' },
+              { num: 3, label: '3. AI Provider' },
+              { num: 4, label: '4. Verify & Run' },
+            ].map((s) => (
               <div
-                key={p.id}
-                onClick={() => {
-                  setAiProvider(p.id as any);
-                  setAiResult(null);
-                }}
+                key={s.num}
                 style={{
-                  padding: '14px',
+                  flex: 1,
+                  padding: '10px 12px',
                   borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  border: `1px solid ${aiProvider === p.id ? 'var(--cyan-bright)' : 'var(--border-subtle)'}`,
-                  background: aiProvider === p.id ? 'rgba(0, 229, 255, 0.08)' : 'var(--bg-base)',
+                  background: step === s.num ? 'rgba(0, 229, 255, 0.12)' : 'var(--bg-panel)',
+                  border: `1px solid ${step === s.num ? 'var(--cyan-bright)' : 'var(--border-subtle)'}`,
+                  color: step === s.num ? 'var(--cyan-bright)' : 'var(--text-tertiary)',
+                  fontSize: '12px',
+                  fontWeight: step === s.num ? 600 : 400,
+                  textAlign: 'center',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '13px', color: '#FFF' }}>{p.title}</span>
-                  <span className="tag-sev low" style={{ fontSize: '10px' }}>{p.badge}</span>
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.desc}</div>
+                {s.label}
               </div>
             ))}
           </div>
 
-          {/* OpenAI Configuration */}
-          {aiProvider === 'openai' && (
-            <div style={{ background: 'var(--bg-base)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px' }}>
+          {/* Step 1: IAM Policy Guidance & Download */}
+          {step === 1 && (
+            <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '18px' }}>
+                <span style={{ fontSize: '22px' }}>🛡️</span>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    OpenAI API Key (sk-...) *
+                  <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#FFF', margin: '0 0 4px 0' }}>
+                    Step 1: Create a Dedicated Audit IAM User in AWS
+                  </h2>
+                  <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                    Never use root or administrative keys. We recommend creating an IAM user named{' '}
+                    <code style={{ color: 'var(--cyan-bright)', background: 'rgba(0, 229, 255, 0.08)', padding: '2px 6px', borderRadius: '4px' }}>
+                      cloudsentinel-auditor
+                    </code>{' '}
+                    with programmatic access, and attaching this read-only policy.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255, 179, 0, 0.08)', border: '1px solid rgba(255, 179, 0, 0.25)', borderRadius: 'var(--radius-sm)', padding: '14px 18px', marginBottom: '22px', fontSize: '12px', color: '#ffca28', lineHeight: 1.5 }}>
+                <strong>Why this is safe:</strong> The policy below grants strictly read-only inspection permissions (<code style={{ color: '#FFF' }}>Get*</code>, <code style={{ color: '#FFF' }}>List*</code>, <code style={{ color: '#FFF' }}>Describe*</code>) across IAM, EC2, S3, RDS, VPC, CloudTrail, and Config. It has zero mutation or resource destruction permissions.
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                  Least-Privilege Policy JSON
+                </span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ fontSize: '11.5px', padding: '5px 12px' }}
+                    onClick={handleCopyPolicy}
+                  >
+                    {copied ? '✓ Copied!' : 'Copy JSON'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-cyan"
+                    style={{ fontSize: '11.5px', padding: '5px 14px', fontWeight: 600 }}
+                    onClick={handleDownloadPolicy}
+                    title="Download cloudsentinel_audit_iam_policy.json file to upload to AWS"
+                  >
+                    ⬇ Download Policy (.json)
+                  </button>
+                </div>
+              </div>
+
+              <pre
+                style={{
+                  background: '#07090e',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '16px',
+                  fontSize: '11.5px',
+                  color: 'var(--cyan-dim)',
+                  maxHeight: '280px',
+                  overflowY: 'auto',
+                  fontFamily: 'var(--font-mono)',
+                  lineHeight: 1.5,
+                }}
+              >
+                {iamPolicyText}
+              </pre>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  className="btn btn-cyan"
+                  onClick={() => setStep(2)}
+                  style={{ padding: '10px 24px', fontSize: '13px', fontWeight: 600 }}
+                >
+                  I've Attached the Policy &rarr; Enter Keys
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: AWS Credentials Input & Test */}
+          {step === 2 && (
+            <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '28px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#FFF', margin: '0 0 6px 0' }}>
+                Enter AWS Access Credentials
+              </h2>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 22px 0' }}>
+                Provide the Access Key ID and Secret Access Key generated for your dedicated auditor. Keys are verified via AWS STS before saving.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', marginBottom: '18px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    AWS Access Key ID <span style={{ color: 'var(--sev-crit)' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="AKIAIOSFODNN7EXAMPLE"
+                    value={accessKeyId}
+                    onChange={(e) => {
+                      setAccessKeyId(e.target.value);
+                      setAwsResult(null);
+                    }}
+                    style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    AWS Secret Access Key <span style={{ color: 'var(--sev-crit)' }}>*</span>
                   </label>
                   <input
                     type="password"
+                    className="input"
+                    placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                    value={secretAccessKey}
+                    onChange={(e) => {
+                      setSecretAccessKey(e.target.value);
+                      setAwsResult(null);
+                    }}
+                    style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', marginBottom: '22px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Target Audit Region
+                  </label>
+                  <select
+                    className="input"
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    style={{ width: '100%', fontSize: '12px' }}
+                  >
+                    <option value="us-east-1">US East (N. Virginia) us-east-1</option>
+                    <option value="us-east-2">US East (Ohio) us-east-2</option>
+                    <option value="us-west-1">US West (N. California) us-west-1</option>
+                    <option value="us-west-2">US West (Oregon) us-west-2</option>
+                    <option value="ap-south-1">Asia Pacific (Mumbai) ap-south-1</option>
+                    <option value="eu-west-1">Europe (Ireland) eu-west-1</option>
+                    <option value="eu-central-1">Europe (Frankfurt) eu-central-1</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    STS Session Token <span style={{ color: 'var(--text-tertiary)' }}>(Optional - for temporary credentials)</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="input"
+                    placeholder="AQoDYXdzEJr1... (leave empty for permanent IAM user)"
+                    value={sessionToken}
+                    onChange={(e) => setSessionToken(e.target.value)}
+                    style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+
+              {/* AWS Test Result Feedback */}
+              {awsResult && (
+                <div
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: 'var(--radius-sm)',
+                    marginBottom: '22px',
+                    fontSize: '12px',
+                    background: awsResult.is_valid ? 'rgba(0, 230, 118, 0.08)' : 'rgba(255, 23, 68, 0.08)',
+                    border: `1px solid ${awsResult.is_valid ? 'var(--sev-low)' : 'var(--sev-crit)'}`,
+                    color: awsResult.is_valid ? 'var(--sev-low)' : 'var(--sev-crit)',
+                  }}
+                >
+                  {awsResult.is_valid ? (
+                    <div>
+                      <strong>✓ AWS STS Identity Verified!</strong>
+                      <div style={{ marginTop: '4px', fontSize: '11.5px', opacity: 0.9 }}>
+                        Account ID: <b>{awsResult.account_id}</b> · Principal: <code>{awsResult.arn}</code>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <strong>✕ AWS Verification Failed (Cannot Proceed):</strong>
+                      <div style={{ marginTop: '4px', fontSize: '11.5px', opacity: 0.9 }}>
+                        {awsResult.error_message}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button type="button" className="btn" onClick={() => setStep(1)} style={{ fontSize: '12px' }}>
+                  &larr; Back
+                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={handleTestAws}
+                    disabled={isTestingAws || !accessKeyId.trim() || !secretAccessKey.trim()}
+                    style={{ fontSize: '12px' }}
+                  >
+                    {isTestingAws ? 'Verifying with AWS STS…' : 'Test Credentials'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-cyan"
+                    onClick={handleStep2Next}
+                    style={{ fontSize: '12px', padding: '8px 20px', fontWeight: 600 }}
+                  >
+                    {awsResult?.is_valid ? 'Continue &rarr;' : 'Verify & Continue &rarr;'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: AI Provider Setup */}
+          {step === 3 && (
+            <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '28px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#FFF', margin: '0 0 6px 0' }}>
+                Select AI Remediation Provider
+              </h2>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 22px 0' }}>
+                CloudSentinel supports Amazon Bedrock, OpenAI, Anthropic, or deterministic rule evaluation.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '22px' }}>
+                {[
+                  { id: 'bedrock', title: 'Amazon Bedrock', desc: 'Claude 3.5 via AWS', badge: 'AWS Native' },
+                  { id: 'openai', title: 'OpenAI', desc: 'GPT-4o / GPT-4o-mini', badge: 'API Key' },
+                  { id: 'anthropic', title: 'Anthropic', desc: 'Direct Claude API', badge: 'API Key' },
+                  { id: 'default', title: 'Deterministic', desc: 'Offline Rulebook', badge: 'No Key' },
+                ].map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => {
+                      setAiProvider(p.id as any);
+                      setAiResult(null);
+                    }}
+                    style={{
+                      border: `1px solid ${aiProvider === p.id ? 'var(--cyan-bright)' : 'var(--border-subtle)'}`,
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '14px',
+                      cursor: 'pointer',
+                      background: aiProvider === p.id ? 'rgba(0, 229, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: aiProvider === p.id ? '#FFF' : 'var(--text-secondary)' }}>
+                        {p.title}
+                      </span>
+                      <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 5px', borderRadius: '3px', color: 'var(--text-tertiary)' }}>
+                        {p.badge}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{p.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Conditional AI Key Inputs */}
+              {aiProvider === 'openai' && (
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '18px', marginBottom: '22px' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    OpenAI API Key <span style={{ color: 'var(--sev-crit)' }}>*</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="input"
                     placeholder="sk-proj-..."
                     value={openaiKey}
                     onChange={(e) => {
                       setOpenaiKey(e.target.value);
                       setAiResult(null);
                     }}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: '#0a0d14',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: '#FFF',
-                      fontSize: '12px',
-                      fontFamily: 'var(--font-mono)',
-                    }}
+                    style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '12px', marginBottom: '14px' }}
                   />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Model
+
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    OpenAI Model
                   </label>
                   <select
+                    className="input"
                     value={openaiModel}
                     onChange={(e) => setOpenaiModel(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: '#0a0d14',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: '#FFF',
-                      fontSize: '12px',
-                    }}
+                    style={{ width: '100%', fontSize: '12px' }}
                   >
-                    <option value="gpt-4o-mini">gpt-4o-mini (Fast &amp; Cost-Effective)</option>
-                    <option value="gpt-4o">gpt-4o (High Reasoning)</option>
+                    <option value="gpt-4o-mini">gpt-4o-mini (Fast &amp; Cost-Effective - Default)</option>
+                    <option value="gpt-4o">gpt-4o (Maximum Capability)</option>
                   </select>
                 </div>
-              </div>
+              )}
 
-              <div style={{ marginTop: '12px' }}>
-                <button
-                  type="button"
-                  className="btn btn-cyan"
-                  onClick={handleTestAi}
-                  disabled={isTestingAi || !openaiKey.trim()}
-                  style={{ fontSize: '11px', padding: '6px 12px' }}
-                >
-                  {isTestingAi ? 'Validating Key…' : '⚡ Test OpenAI Key'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Anthropic Configuration */}
-          {aiProvider === 'anthropic' && (
-            <div style={{ background: 'var(--bg-base)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Anthropic API Key (sk-ant-...) *
+              {aiProvider === 'anthropic' && (
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '18px', marginBottom: '22px' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Anthropic API Key <span style={{ color: 'var(--sev-crit)' }}>*</span>
                   </label>
                   <input
                     type="password"
-                    placeholder="sk-ant-..."
+                    className="input"
+                    placeholder="sk-ant-api03-..."
                     value={anthropicKey}
                     onChange={(e) => {
                       setAnthropicKey(e.target.value);
                       setAiResult(null);
                     }}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: '#0a0d14',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: '#FFF',
-                      fontSize: '12px',
-                      fontFamily: 'var(--font-mono)',
-                    }}
+                    style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: '12px', marginBottom: '14px' }}
                   />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    Model
+
+                  <label style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Anthropic Claude Model
                   </label>
                   <select
+                    className="input"
                     value={anthropicModel}
                     onChange={(e) => setAnthropicModel(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      background: '#0a0d14',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: '#FFF',
-                      fontSize: '12px',
-                    }}
+                    style={{ width: '100%', fontSize: '12px' }}
                   >
-                    <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet</option>
-                    <option value="claude-3-5-haiku-20241022">claude-3-5-haiku</option>
+                    <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet-20241022 (Recommended)</option>
+                    <option value="claude-3-5-haiku-20241022">claude-3-5-haiku-20241022 (Fastest)</option>
                   </select>
+                </div>
+              )}
+
+              {/* AI Test Feedback */}
+              {aiResult && (
+                <div
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: 'var(--radius-sm)',
+                    marginBottom: '22px',
+                    fontSize: '12px',
+                    background: aiResult.is_valid ? 'rgba(0, 230, 118, 0.08)' : 'rgba(255, 23, 68, 0.08)',
+                    border: `1px solid ${aiResult.is_valid ? 'var(--sev-low)' : 'var(--sev-crit)'}`,
+                    color: aiResult.is_valid ? 'var(--sev-low)' : 'var(--sev-crit)',
+                  }}
+                >
+                  {aiResult.is_valid ? (
+                    <div>✓ {aiResult.provider.toUpperCase()} AI credentials verified successfully!</div>
+                  ) : (
+                    <div>✕ AI Key Verification Failed: {aiResult.error_message}</div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button type="button" className="btn" onClick={() => setStep(2)} style={{ fontSize: '12px' }}>
+                  &larr; Back
+                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {(aiProvider === 'openai' || aiProvider === 'anthropic') && (
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={handleTestAi}
+                      disabled={isTestingAi}
+                      style={{ fontSize: '12px' }}
+                    >
+                      {isTestingAi ? 'Verifying Key…' : 'Test AI Key'}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-cyan"
+                    onClick={handleStep3Next}
+                    style={{ fontSize: '12px', padding: '8px 20px', fontWeight: 600 }}
+                  >
+                    Review Setup &rarr;
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Review, Finalize & Run Audit */}
+          {step === 4 && (
+            <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '28px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#FFF', margin: '0 0 6px 0' }}>
+                Finalize Configuration &amp; Begin Audit
+              </h2>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 22px 0' }}>
+                Review your tenant parameters before unlocking dashboard access.
+              </p>
+
+              <div style={{ background: '#0a0d14', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '18px', marginBottom: '22px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '12px' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>Target AWS Account:</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--cyan-bright)' }}>
+                      {awsResult?.account_id || 'Connected Account'}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>Audit Region:</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#FFF' }}>{region}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>IAM Principal:</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                      {awsResult?.arn || 'cloudsentinel-auditor'}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>AI Remediation Engine:</span>
+                    <span style={{ textTransform: 'capitalize', fontWeight: 600, color: 'var(--cyan-bright)' }}>
+                      {aiProvider}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div style={{ marginTop: '12px' }}>
+              <div style={{ marginBottom: '22px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '12.5px', color: '#FFF' }}>
+                  <input
+                    type="checkbox"
+                    checked={triggerScan}
+                    onChange={(e) => setTriggerScan(e.target.checked)}
+                    style={{ accentColor: 'var(--cyan-bright)', width: '16px', height: '16px' }}
+                  />
+                  <span>Trigger Initial Multi-Service Security Audit Immediately (Recommended)</span>
+                </label>
+                <p style={{ margin: '4px 0 0 26px', fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
+                  Runs read-only collectors on IAM, EC2, S3, VPC, Security Groups, RDS, CloudTrail, and Config.
+                </p>
+              </div>
+
+              {submitError && (
+                <div style={{ background: 'rgba(255, 23, 68, 0.1)', border: '1px solid var(--sev-crit)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', color: 'var(--sev-crit)', fontSize: '12px', marginBottom: '20px' }}>
+                  {submitError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button type="button" className="btn" onClick={() => setStep(3)} style={{ fontSize: '12px' }}>
+                  &larr; Back
+                </button>
                 <button
                   type="button"
                   className="btn btn-cyan"
-                  onClick={handleTestAi}
-                  disabled={isTestingAi || !anthropicKey.trim()}
-                  style={{ fontSize: '11px', padding: '6px 12px' }}
+                  onClick={handleComplete}
+                  disabled={isSubmitting}
+                  style={{ fontSize: '13px', padding: '10px 26px', fontWeight: 600 }}
                 >
-                  {isTestingAi ? 'Validating Key…' : '⚡ Test Anthropic Key'}
+                  {isSubmitting ? 'Starting Initial Audit…' : 'Complete Setup & Enter Dashboard 🚀'}
                 </button>
               </div>
             </div>
           )}
-
-          {/* AI Validation Feedback */}
-          {aiResult && (
-            <div
-              style={{
-                borderRadius: 'var(--radius-sm)',
-                padding: '12px 16px',
-                marginBottom: '20px',
-                fontSize: '12px',
-                background: aiResult.is_valid ? 'rgba(0, 230, 118, 0.08)' : 'rgba(255, 23, 68, 0.08)',
-                border: `1px solid ${aiResult.is_valid ? 'rgba(0, 230, 118, 0.3)' : 'rgba(255, 23, 68, 0.3)'}`,
-                color: aiResult.is_valid ? 'var(--sev-low)' : 'var(--sev-crit)',
-              }}
-            >
-              {aiResult.is_valid ? (
-                <div>✓ AI Provider verified ({aiResult.provider} / {aiResult.model || 'active'})</div>
-              ) : (
-                <div>✗ {aiResult.error_message}</div>
-              )}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
-            <button type="button" className="btn" onClick={() => setStep(2)} style={{ fontSize: '12px' }}>
-              &larr; Back to AWS Keys
-            </button>
-            <button
-              type="button"
-              className="btn btn-cyan"
-              onClick={() => setStep(4)}
-              disabled={(aiProvider === 'openai' && !openaiKey.trim()) || (aiProvider === 'anthropic' && !anthropicKey.trim())}
-              style={{ fontSize: '12px', padding: '8px 20px' }}
-            >
-              Continue to Final Step &rarr;
-            </button>
-          </div>
         </div>
-      )}
-
-      {/* Step 4: Review & Launch Live Audit */}
-      {step === 4 && (
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '24px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: '#FFF', margin: '0 0 6px 0' }}>
-            Review &amp; Launch First Real Audit
-          </h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 20px 0' }}>
-            CloudSentinel will now run a read-only audit against your connected AWS account and populate real findings.
-          </p>
-
-          <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '16px', marginBottom: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '12px' }}>
-              <div>
-                <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>Target Account ID:</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#FFF' }}>
-                  {awsResult?.account_id || 'Connected Account'}
-                </span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>Audit Region:</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#FFF' }}>{region}</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>IAM Principal:</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)' }}>
-                  {awsResult?.arn || 'cloudsentinel-auditor'}
-                </span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}>AI Remediation Engine:</span>
-                <span style={{ textTransform: 'capitalize', fontWeight: 600, color: 'var(--cyan-bright)' }}>
-                  {aiProvider}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '12px', color: '#FFF' }}>
-              <input
-                type="checkbox"
-                checked={triggerScan}
-                onChange={(e) => setTriggerScan(e.target.checked)}
-                style={{ accentColor: 'var(--cyan-bright)', width: '16px', height: '16px' }}
-              />
-              <span>Trigger Initial Multi-Service Security Audit Immediately (Recommended)</span>
-            </label>
-            <p style={{ margin: '4px 0 0 26px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
-              Runs read-only collectors on IAM, EC2, S3, VPC, Security Groups, RDS, CloudTrail, and Config.
-            </p>
-          </div>
-
-          {submitError && (
-            <div style={{ background: 'rgba(255, 23, 68, 0.1)', border: '1px solid var(--sev-crit)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', color: 'var(--sev-crit)', fontSize: '12px', marginBottom: '20px' }}>
-              {submitError}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button type="button" className="btn" onClick={() => setStep(3)} style={{ fontSize: '12px' }}>
-              &larr; Back
-            </button>
-            <button
-              type="button"
-              className="btn btn-cyan"
-              onClick={handleComplete}
-              disabled={isSubmitting}
-              style={{ fontSize: '13px', padding: '10px 24px', fontWeight: 600 }}
-            >
-              {isSubmitting ? 'Starting Initial Audit…' : 'Complete Setup & Run Real Audit 🚀'}
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

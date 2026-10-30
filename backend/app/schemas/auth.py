@@ -66,4 +66,7 @@ class UserResponse(BaseModel):
     full_name: str = Field(..., description="User full name", example="Harshith")
     role: UserRole = Field(..., description="Assigned RBAC role", example="analyst")
     is_active: bool = Field(True, description="Account active status", example=True)
+    is_onboarded: bool = Field(
+        False, description="Whether user completed AWS & AI onboarding", example=False
+    )
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")

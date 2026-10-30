@@ -33,12 +33,14 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 def _user_response(user: User) -> UserResponse:
+    is_onboarded = bool(user.integration and user.integration.is_onboarded)
     return UserResponse(
         id=user.id,
         email=user.email,
         full_name=user.full_name,
         role=user.role,
         is_active=user.is_active,
+        is_onboarded=is_onboarded,
     )
 
 
