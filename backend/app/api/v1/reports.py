@@ -5,8 +5,8 @@ Generates and streams downloadable assessment reports in PDF, HTML, JSON,
 and CSV formats with optional AI-powered remediation guidance.
 """
 
-from datetime import datetime, timezone
 import os
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_current_user
 from app.core.constants import ReportFormat, Severity
 from app.core.exceptions import ResourceNotFoundError
-from app.database.models import Finding, Scan, User
+from app.database.models import User
 from app.database.repositories import FindingRepository, ReportRepository, ScanRepository
 from app.database.session import get_db
 from app.reports import ScanReportData, render_report
@@ -29,7 +29,7 @@ from app.schemas.reports import (
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
-REPORTS_DIR = Path("backend/reports_data")
+REPORTS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "reports_data"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 MIME_TYPES = {
@@ -53,12 +53,21 @@ async def generate_report(
     db: Session = Depends(get_db),
 ) -> ReportResponse:
     """Compile scan results and render downloadable report artifact."""
-    scan = ScanRepository(db).get(payload.scan_id)
-    if scan is None or (user.role != "admin" and scan.user_id != user.id):
-        raise ResourceNotFoundError(f"Scan {payload.scan_id} not found")
+    target_scan_id = payload.scan_id
+    scan_repo = ScanRepository(db)
+    if not target_scan_id:
+        scans, _ = scan_repo.list_for_user(user.id, page=1, limit=1)
+        if not scans:
+            raise ResourceNotFoundError("No scan available to generate report. Run a scan first.")
+        scan = scans[0]
+        target_scan_id = scan.id
+    else:
+        scan = scan_repo.get(target_scan_id)
+        if scan is None or (user.role != "admin" and scan.user_id != user.id):
+            raise ResourceNotFoundError(f"Scan {target_scan_id} not found")
 
     finding_repo = FindingRepository(db)
-    findings, _ = finding_repo.list_paginated(scan_id=payload.scan_id, page=1, limit=500)
+    findings, _ = finding_repo.list_paginated(scan_id=target_scan_id, page=1, limit=500)
 
     # Convert findings to dictionary payload
     findings_dicts: list[dict[str, Any]] = [
@@ -94,8 +103,10 @@ async def generate_report(
     report_data = ScanReportData(
         scan_id=scan.id,
         account_id=getattr(scan, "account_id", "250675044619"),
-        provider=scan.target_cloud.value if hasattr(scan.target_cloud, "value") else str(scan.target_cloud),
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        provider=scan.target_cloud.value
+        if hasattr(scan.target_cloud, "value")
+        else str(scan.target_cloud),
+        generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         risk_score=risk_score,
         compliance_score=compliance_score,
         summary={

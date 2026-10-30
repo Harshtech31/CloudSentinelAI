@@ -6,8 +6,6 @@ Enumerates VPCs, subnets, and route tables across configured AWS regions.
 
 from typing import Any
 
-from botocore.exceptions import BotoCoreError, ClientError
-
 from app.collectors.aws import get_aws_client
 from app.collectors.base import BaseCollector
 from app.core.config import settings
@@ -97,9 +95,7 @@ class VPCCollector(BaseCollector):
                             }
                             for r in rt.get("Routes", [])
                         ]
-                        has_igw = any(
-                            r.get("gateway_id", "").startswith("igw-") for r in routes
-                        )
+                        has_igw = any(r.get("gateway_id", "").startswith("igw-") for r in routes)
 
                         route_tables.append(
                             {

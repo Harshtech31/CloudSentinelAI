@@ -9,7 +9,7 @@ CSPM best practices:
 - AWS-IAM-004: Inline Policy Direct Attachment (CIS 1.16)
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from app.analyzers import BaseAnalyzer, RawFinding
@@ -81,9 +81,7 @@ class IAMAnalyzer(BaseAnalyzer):
                     action = stmt.get("Action", [])
                     resource = stmt.get("Resource", [])
 
-                    action_has_star = action == "*" or (
-                        isinstance(action, list) and "*" in action
-                    )
+                    action_has_star = action == "*" or (isinstance(action, list) and "*" in action)
                     resource_has_star = resource == "*" or (
                         isinstance(resource, list) and "*" in resource
                     )
@@ -123,7 +121,7 @@ class IAMAnalyzer(BaseAnalyzer):
     ) -> list[RawFinding]:
         """Rule AWS-IAM-003: Access keys unrotated or unused for over 90 days."""
         findings: list[RawFinding] = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         users = resources.get("iam_users", [])
 
         for u in users:
@@ -155,7 +153,11 @@ class IAMAnalyzer(BaseAnalyzer):
                                     "and deactivate any superseded credentials."
                                 ),
                                 remediation_url="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_RotateAccessKey",
-                                metadata={"username": username, "key_id": key_id, "age_days": age_days},
+                                metadata={
+                                    "username": username,
+                                    "key_id": key_id,
+                                    "age_days": age_days,
+                                },
                             )
                         )
                 except Exception:

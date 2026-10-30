@@ -59,15 +59,17 @@ class EncryptionAnalyzer(BaseAnalyzer):
                             "encrypted RDS DB instance with AWS KMS encryption enabled."
                         ),
                         remediation_url="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html",
-                        metadata={"db_id": db_id, "engine": db.get("engine"), "cis_control": "2.3.1"},
+                        metadata={
+                            "db_id": db_id,
+                            "engine": db.get("engine"),
+                            "cis_control": "2.3.1",
+                        },
                     )
                 )
 
         return findings
 
-    def _check_unencrypted_s3(
-        self, resources: dict[str, list[dict[str, Any]]]
-    ) -> list[RawFinding]:
+    def _check_unencrypted_s3(self, resources: dict[str, list[dict[str, Any]]]) -> list[RawFinding]:
         """Rule AWS-ENC-002: S3 bucket default server-side encryption disabled."""
         findings: list[RawFinding] = []
         buckets = resources.get("s3_buckets", [])
@@ -102,9 +104,7 @@ class EncryptionAnalyzer(BaseAnalyzer):
 
         return findings
 
-    def _check_public_rds(
-        self, resources: dict[str, list[dict[str, Any]]]
-    ) -> list[RawFinding]:
+    def _check_public_rds(self, resources: dict[str, list[dict[str, Any]]]) -> list[RawFinding]:
         """Rule AWS-ENC-003: RDS instance is publicly accessible."""
         findings: list[RawFinding] = []
         rds_instances = resources.get("rds_instances", [])

@@ -2,10 +2,10 @@
 Unit tests for Finding AI Explanation and Compliance Report REST endpoints.
 """
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.auth.jwt import create_access_token
@@ -35,12 +35,19 @@ def test_setup():
     app.dependency_overrides[get_db] = override_get_db
     client = TestClient(app)
 
-    user = User(email="analyst@example.com", hashed_password="pw", full_name="Analyst", is_active=True)
+    user = User(
+        email="analyst@example.com", hashed_password="pw", full_name="Analyst", is_active=True
+    )
     session.add(user)
     session.commit()
     session.refresh(user)
 
-    scan = Scan(id="scn_exp_test", user_id=user.id, target_cloud=CloudProvider.AWS, status=ScanStatus.COMPLETED)
+    scan = Scan(
+        id="scn_exp_test",
+        user_id=user.id,
+        target_cloud=CloudProvider.AWS,
+        status=ScanStatus.COMPLETED,
+    )
     session.add(scan)
     session.commit()
 

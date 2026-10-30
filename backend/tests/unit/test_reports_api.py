@@ -2,14 +2,14 @@
 Unit tests for Report Generators (JSON, CSV, HTML, PDF) and Report REST Endpoints.
 """
 
-from datetime import datetime, timezone
-from fastapi.testclient import TestClient
+from datetime import UTC, datetime
+
 import pytest
-from sqlalchemy.orm import Session
+from fastapi.testclient import TestClient
 
 from app.auth.jwt import create_access_token
 from app.core.constants import CloudProvider, ReportFormat, ScanStatus
-from app.database.models import Finding, Scan, User
+from app.database.models import Scan, User
 from app.main import app
 from app.reports import ScanReportData, render_report
 
@@ -20,7 +20,7 @@ def sample_report_data():
         scan_id="scn_test_rep_1",
         account_id="250675044619",
         provider="aws",
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=datetime.now(UTC).isoformat(),
         risk_score=85.0,
         compliance_score=90.0,
         summary={"total_findings": 2, "critical_findings": 1},
@@ -78,6 +78,7 @@ def test_reports_api_generate_and_download(sample_report_data):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
     from sqlalchemy.pool import StaticPool
+
     from app.database.base import Base
     from app.database.session import get_db
 
@@ -100,12 +101,22 @@ def test_reports_api_generate_and_download(sample_report_data):
 
     try:
         # Create user and scan
-        user = User(email="report_tester@example.com", hashed_password="pw", full_name="Tester", is_active=True)
+        user = User(
+            email="report_tester@example.com",
+            hashed_password="pw",
+            full_name="Tester",
+            is_active=True,
+        )
         session.add(user)
         session.commit()
         session.refresh(user)
 
-        scan = Scan(id="scn_api_rep_test", user_id=user.id, target_cloud=CloudProvider.AWS, status=ScanStatus.COMPLETED)
+        scan = Scan(
+            id="scn_api_rep_test",
+            user_id=user.id,
+            target_cloud=CloudProvider.AWS,
+            status=ScanStatus.COMPLETED,
+        )
         session.add(scan)
         session.commit()
 

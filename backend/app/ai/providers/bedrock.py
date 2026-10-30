@@ -2,7 +2,6 @@ import json
 from typing import Any
 
 from app.ai import (
-    AIProviderError,
     AIProviderResponseError,
     AIProviderUnavailable,
     BaseAIProvider,
@@ -11,8 +10,8 @@ from app.ai import (
 )
 from app.ai.parser import parse_recommendations
 from app.ai.prompts import (
-    AUDIENCES,
     ATTACK_PATH_PROMPT,
+    AUDIENCES,
     FINDING_PROMPT,
     SYSTEM_PROMPT,
 )

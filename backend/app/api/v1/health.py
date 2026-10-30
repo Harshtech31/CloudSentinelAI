@@ -79,7 +79,9 @@ async def deep_health_check(db: Session = Depends(get_db)) -> DeepHealthResponse
             "database": db_status,
             "attack_engine": "ready",
             "graph_store": "ready",
-            "ai_inference": "bedrock_haiku_configured" if settings.LLM_PROVIDER == "bedrock" else settings.LLM_PROVIDER,
+            "ai_inference": "bedrock_haiku_configured"
+            if settings.LLM_PROVIDER == "bedrock"
+            else settings.LLM_PROVIDER,
         },
     )
 

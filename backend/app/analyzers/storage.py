@@ -62,7 +62,7 @@ class StorageAnalyzer(BaseAnalyzer):
                         remediation=(
                             f"Enable S3 Block Public Access on '{name}' via 'aws s3api "
                             f"put-public-access-block --bucket {name} --public-access-block-configuration "
-                            "\"BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true\"'."
+                            '"BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"\'.'
                         ),
                         remediation_url="https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
                         metadata={"bucket_name": name, "cis_control": "2.1.5"},

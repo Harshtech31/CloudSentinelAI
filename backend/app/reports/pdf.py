@@ -21,7 +21,7 @@ from reportlab.platypus import (
 )
 
 from app.core.constants import ReportFormat
-from app.reports import BaseRenderer, ScanReportData
+from app.reports.base import BaseRenderer, ScanReportData
 
 
 class PDFRenderer(BaseRenderer):
@@ -72,13 +72,6 @@ class PDFRenderer(BaseRenderer):
             fontSize=9,
             leading=12,
         )
-        cell_bold = ParagraphStyle(
-            "TableCellBold",
-            parent=styles["Normal"],
-            fontSize=9,
-            leading=12,
-            fontName="Helvetica-Bold",
-        )
 
         elements: list[Any] = []
 
@@ -91,15 +84,28 @@ class PDFRenderer(BaseRenderer):
             )
         )
         elements.append(Spacer(1, 10))
-        elements.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#cbd5e1"), spaceAfter=14))
+        elements.append(
+            HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#cbd5e1"), spaceAfter=14)
+        )
 
         # 2. Executive Metrics Table
-        crit_count = sum(1 for f in data.findings if str(f.get("severity", "")).upper() == "CRITICAL")
-        high_count = sum(1 for f in data.findings if str(f.get("severity", "")).upper() == "HIGH")
+        crit_count = sum(
+            1 for f in data.findings if str(f.get("severity", "")).upper() == "CRITICAL"
+        )
 
         metrics_data = [
-            ["Security Posture Score", "CIS Compliance", "Total Findings", "Critical Vulnerabilities"],
-            [f"{data.risk_score:.1f} / 100", f"{data.compliance_score:.1f}%", str(len(data.findings)), str(crit_count)],
+            [
+                "Security Posture Score",
+                "CIS Compliance",
+                "Total Findings",
+                "Critical Vulnerabilities",
+            ],
+            [
+                f"{data.risk_score:.1f} / 100",
+                f"{data.compliance_score:.1f}%",
+                str(len(data.findings)),
+                str(crit_count),
+            ],
         ]
         metrics_table = Table(metrics_data, colWidths=[135, 135, 135, 135])
         metrics_table.setStyle(
@@ -116,7 +122,14 @@ class PDFRenderer(BaseRenderer):
                     ("FONTSIZE", (0, 1), (-1, 1), 14),
                     ("TEXTCOLOR", (0, 1), (0, 1), colors.HexColor("#d97706")),
                     ("TEXTCOLOR", (1, 1), (1, 1), colors.HexColor("#16a34a")),
-                    ("TEXTCOLOR", (3, 1), (3, 1), colors.HexColor("#dc2626") if crit_count > 0 else colors.HexColor("#16a34a")),
+                    (
+                        "TEXTCOLOR",
+                        (3, 1),
+                        (3, 1),
+                        colors.HexColor("#dc2626")
+                        if crit_count > 0
+                        else colors.HexColor("#16a34a"),
+                    ),
                     ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#cbd5e1")),
                     ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
                 ]
@@ -126,10 +139,14 @@ class PDFRenderer(BaseRenderer):
         elements.append(Spacer(1, 14))
 
         # 3. Findings Section
-        elements.append(Paragraph(f"Identified Security Findings ({len(data.findings)})", heading_style))
+        elements.append(
+            Paragraph(f"Identified Security Findings ({len(data.findings)})", heading_style)
+        )
 
         finding_rows = [["#", "Severity", "Rule ID", "Title & Target Resource", "Region"]]
-        for idx, f in enumerate(data.findings[:30], start=1):  # Cap at top 30 findings for PDF layout
+        for idx, f in enumerate(
+            data.findings[:30], start=1
+        ):  # Cap at top 30 findings for PDF layout
             sev = str(f.get("severity", "MEDIUM")).upper()
             title = f.get("title", "Finding")
             res_id = f.get("resource_id", "unknown")
@@ -145,7 +162,17 @@ class PDFRenderer(BaseRenderer):
             )
 
         if len(finding_rows) == 1:
-            finding_rows.append(["-", "INFO", "-", Paragraph("No active findings detected. Cloud environment is compliant.", cell_style), "-"])
+            finding_rows.append(
+                [
+                    "-",
+                    "INFO",
+                    "-",
+                    Paragraph(
+                        "No active findings detected. Cloud environment is compliant.", cell_style
+                    ),
+                    "-",
+                ]
+            )
 
         findings_table = Table(finding_rows, colWidths=[24, 60, 80, 316, 60])
         findings_table.setStyle(

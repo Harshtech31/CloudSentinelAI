@@ -7,8 +7,6 @@ and security group bindings across configured AWS regions.
 
 from typing import Any
 
-from botocore.exceptions import BotoCoreError, ClientError
-
 from app.collectors.aws import get_aws_client
 from app.collectors.base import BaseCollector
 from app.core.config import settings

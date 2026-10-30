@@ -42,7 +42,9 @@ class TopRiskItem(BaseModel):
     title: str = Field(..., description="Finding headline", example="Security Group Open SSH")
     severity: str = Field(..., description="Severity level", example="CRITICAL")
     risk_score: float = Field(..., description="Contextual risk score", example=9.5)
-    resource_type: str = Field(..., description="Cloud resource type", example="AWS::EC2::SecurityGroup")
+    resource_type: str = Field(
+        ..., description="Cloud resource type", example="AWS::EC2::SecurityGroup"
+    )
     resource_id: str = Field(..., description="Resource ID", example="sg-0123")
     region: str = Field("global", description="AWS region", example="us-east-1")
 
@@ -50,7 +52,9 @@ class TopRiskItem(BaseModel):
 class TopRisksResponse(BaseModel):
     """Top priority security risks requiring immediate remediation."""
 
-    top_risks: list[TopRiskItem] = Field(default_factory=list, description="Ranked critical findings")
+    top_risks: list[TopRiskItem] = Field(
+        default_factory=list, description="Ranked critical findings"
+    )
 
 
 __all__ = [

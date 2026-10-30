@@ -14,7 +14,6 @@ from app.analyzers.encryption import EncryptionAnalyzer
 from app.analyzers.iam import IAMAnalyzer
 from app.analyzers.networking import NetworkingAnalyzer
 from app.analyzers.storage import StorageAnalyzer
-from app.core.constants import Severity
 
 
 def test_iam_analyzer_rules():
@@ -26,7 +25,9 @@ def test_iam_analyzer_rules():
                 "name": "alice",
                 "arn": "arn:aws:iam:::user/alice",
                 "mfa_active": False,
-                "access_keys": [{"id": "AKIA1", "status": "Active", "created_at": "2020-01-01T00:00:00Z"}],
+                "access_keys": [
+                    {"id": "AKIA1", "status": "Active", "created_at": "2020-01-01T00:00:00Z"}
+                ],
                 "inline_policies": ["inline1"],
             },
             {
@@ -34,7 +35,9 @@ def test_iam_analyzer_rules():
                 "name": "bob",
                 "arn": "arn:aws:iam:::user/bob",
                 "mfa_active": True,
-                "access_keys": [{"id": "AKIA2", "status": "Active", "created_at": "2026-10-01T00:00:00Z"}],
+                "access_keys": [
+                    {"id": "AKIA2", "status": "Active", "created_at": "2026-10-01T00:00:00Z"}
+                ],
                 "inline_policies": [],
             },
         ],
@@ -43,9 +46,7 @@ def test_iam_analyzer_rules():
                 "id": "p1",
                 "name": "AdminWildcard",
                 "arn": "arn:aws:iam:::policy/AdminWildcard",
-                "document": {
-                    "Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]
-                },
+                "document": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]},
             }
         ],
     }

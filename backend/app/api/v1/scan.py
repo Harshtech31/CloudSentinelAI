@@ -31,6 +31,7 @@ from app.schemas.scan import (
     ScanSummaryResponse,
     scan_to_list_item,
 )
+from app.services.graph_service import graph_store
 from app.tasks.scan_task import run_scan_task
 
 router = APIRouter(prefix="/scan", tags=["Scans"])
@@ -49,9 +50,6 @@ def _get_scan_or_404(db: Session, scan_id: str, user: User):
     if user.role != "admin" and scan.user_id != user.id:
         raise ResourceNotFoundError(f"Scan {scan_id} not found")
     return scan
-
-
-from app.services.graph_service import graph_store
 
 
 def _summary_for(db: Session, scan) -> ScanSummaryResponse:

@@ -7,7 +7,7 @@ Blocks, default encryption, versioning, and server access logging.
 
 from typing import Any
 
-from botocore.exceptions import BotoCoreError, ClientError
+from botocore.exceptions import ClientError
 
 from app.collectors.aws import get_aws_client
 from app.collectors.base import BaseCollector
@@ -105,18 +105,17 @@ class S3Collector(BaseCollector):
             # 4. Default Encryption
             try:
                 enc_res = s3.get_bucket_encryption(Bucket=name)
-                rules = (
-                    enc_res.get("ServerSideEncryptionConfiguration", {}).get("Rules", [])
-                )
+                rules = enc_res.get("ServerSideEncryptionConfiguration", {}).get("Rules", [])
                 if rules:
                     bucket_data["encrypted"] = True
                     bucket_data["encryption_type"] = (
-                        rules[0]
-                        .get("ApplyServerSideEncryptionByDefault", {})
-                        .get("SSEAlgorithm")
+                        rules[0].get("ApplyServerSideEncryptionByDefault", {}).get("SSEAlgorithm")
                     )
             except ClientError as exc:
-                if exc.response["Error"]["Code"] != "ServerSideEncryptionConfigurationNotFoundError":
+                if (
+                    exc.response["Error"]["Code"]
+                    != "ServerSideEncryptionConfigurationNotFoundError"
+                ):
                     logger.debug("S3 encryption read error for %s: %s", name, exc)
 
             # 5. Versioning

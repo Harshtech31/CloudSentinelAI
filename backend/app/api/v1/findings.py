@@ -262,7 +262,9 @@ async def get_compliance_report(
                 framework="CIS AWS Benchmark v1.5",
                 description=desc,
                 status="FAILED" if is_failing else "PASSED",
-                severity="HIGH" if cid in ["1.5", "1.16", "2.1.5", "3.1", "4.1", "4.2"] else "MEDIUM",
+                severity="HIGH"
+                if cid in ["1.5", "1.16", "2.1.5", "3.1", "4.1", "4.2"]
+                else "MEDIUM",
             )
         )
 
@@ -274,6 +276,7 @@ async def get_compliance_report(
     return ComplianceReportResponse(
         framework="CIS AWS Benchmark v1.5",
         compliance_score=score,
+        compliance_percentage=score,
         total_controls=total_controls,
         passed_controls=passed_count,
         failed_controls=failed_count,
@@ -318,7 +321,9 @@ async def explain_single_finding(
         "rule_id": finding.rule_id,
         "title": finding.title,
         "description": finding.description,
-        "severity": finding.severity.value if hasattr(finding.severity, "value") else str(finding.severity),
+        "severity": finding.severity.value
+        if hasattr(finding.severity, "value")
+        else str(finding.severity),
         "resource_type": finding.resource_type,
         "resource_id": finding.resource_id,
         "resource_arn": finding.resource_arn,
@@ -326,7 +331,10 @@ async def explain_single_finding(
         "remediation_guidance": finding.remediation or "",
     }
 
-    explanation = explain_finding(finding_facts, audience="analyst")
+    from app.ai.explain import get_user_providers
+
+    user_providers = get_user_providers(getattr(user, "integration", None))
+    explanation = explain_finding(finding_facts, providers=user_providers, audience="analyst")
 
     # Extract bullet points as structured remediation steps
     raw_steps = [

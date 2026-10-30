@@ -7,8 +7,6 @@ ingress/egress rules, open CIDRs, and protocol permissions.
 
 from typing import Any
 
-from botocore.exceptions import BotoCoreError, ClientError
-
 from app.collectors.aws import get_aws_client
 from app.collectors.base import BaseCollector
 from app.core.config import settings
@@ -48,7 +46,9 @@ class SecurityGroupCollector(BaseCollector):
                             from_port = perm.get("FromPort")
                             to_port = perm.get("ToPort")
                             ip_ranges = [r.get("CidrIp", "") for r in perm.get("IpRanges", [])]
-                            ipv6_ranges = [r.get("CidrIpv6", "") for r in perm.get("Ipv6Ranges", [])]
+                            ipv6_ranges = [
+                                r.get("CidrIpv6", "") for r in perm.get("Ipv6Ranges", [])
+                            ]
                             all_cidrs = ip_ranges + ipv6_ranges
 
                             is_open_to_world = any(

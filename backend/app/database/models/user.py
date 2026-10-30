@@ -37,6 +37,9 @@ class User(TimestampMixin, Base):
     # (FK is nullable with ondelete=SET NULL; SQLAlchemy nulls the FK
     # on parent delete). Findings/reports remain tied to their scan.
     scans = relationship("Scan", back_populates="user")
+    integration = relationship(
+        "UserIntegration", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<User {self.id} {self.email} ({self.role})>"

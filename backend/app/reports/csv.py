@@ -8,7 +8,7 @@ import csv
 import io
 
 from app.core.constants import ReportFormat
-from app.reports import BaseRenderer, ScanReportData
+from app.reports.base import BaseRenderer, ScanReportData
 
 
 class CSVRenderer(BaseRenderer):

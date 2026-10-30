@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudSentinel — Cloud Security Posture &amp; Attack Path Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Palette: Precision Cyber-Cyan & Deep Graphite */
+      --bg-void: #07080B;
+      --bg-panel: #0E1015;
+      --bg-elevated: #141720;
+      --bg-hover: #1A1E2A;
+      --bg-active: #202636;
+      
+      --border-subtle: #191D26;
+      --border-light: #242A37;
+      --border-focus: #00F5D4;
+
+      --text-primary: #F1F3F7;
+      --text-secondary: #8E95A5;
+      --text-tertiary: #525969;
+      --text-inverse: #07080B;
+
+      /* Signature Electric Cyan */
+      --cyan-bright: #00F5D4;
+      --cyan-dim: #00BFB2;
+      --cyan-tint: rgba(0, 245, 212, 0.08);
+      --cyan-glow: rgba(0, 245, 212, 0.25);
+
+      /* Severity Codes (Muted technical tones) */
+      --sev-crit: #FF3366;
+      --sev-crit-bg: rgba(255, 51, 102, 0.1);
+      --sev-crit-border: rgba(255, 51, 102, 0.3);
+
+      --sev-high: #FF8833;
+      --sev-high-bg: rgba(255, 136, 51, 0.1);
+      --sev-high-border: rgba(255, 136, 51, 0.3);
+
+      --sev-med: #FFCC00;
+      --sev-med-bg: rgba(255, 204, 0, 0.1);
+      --sev-med-border: rgba(255, 204, 0, 0.3);
+
+      --sev-low: #00F5D4;
+      --sev-low-bg: rgba(0, 245, 212, 0.1);
+      --sev-low-border: rgba(0, 245, 212, 0.3);
+
+      --font-sans: 'Geist', -apple-system, sans-serif;
+      --font-mono: 'Geist Mono', monospace;
+
+      --radius-xs: 3px;
+      --radius-sm: 5px;
+      --radius-md: 7px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      outline: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-void);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+    /* Shell Layout */
+    .app-container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Sidebar Navigation (Slim, High-density) */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    .brand-header {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-icon {
+      width: 22px;
+      height: 22px;
+      background: var(--cyan-bright);
+      border-radius: var(--radius-xs);
+      display: grid;
+      place-items: center;
+      color: var(--bg-void);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-version {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--cyan-bright);
+      background: var(--cyan-tint);
+      padding: 1px 5px;
+      border-radius: var(--radius-xs);
+      font-weight: 500;
+    }
+
+    .nav-list {
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-group-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      padding: 10px 8px 4px;
+      font-weight: 600;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      user-select: none;
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .nav-item svg {
+      width: 15px;
+      height: 15px;
+      opacity: 0.65;
+      stroke-width: 1.8;
+      transition: all 0.12s ease;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .nav-item:hover svg {
+      opacity: 1;
+    }
+
+    .nav-item.active {
+      background: var(--bg-active);
+      color: #FFF;
+    }
+
+    .nav-item.active svg {
+      color: var(--cyan-bright);
+      opacity: 1;
+    }
+
+    .badge-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: var(--radius-xs);
+      background: var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .badge-count.alert {
+      background: var(--sev-crit-bg);
+      color: var(--sev-crit);
+    }
+
+    .sidebar-footer {
+      padding: 12px 14px;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .account-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan-bright);
+      box-shadow: 0 0 6px var(--cyan-bright);
+      flex-shrink: 0;
+    }
+
+    .account-meta {
+      overflow: hidden;
+    }
+
+    .account-name {
+      color: #FFF;
+      font-weight: 500;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .account-id {
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      font-size: 9.5px;
+    }
+
+    /* Main Area */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-void);
+    }
+
+    /* Header Bar (Dense Command Line Style) */
+    .topbar {
+      height: 52px;
+      padding: 0 20px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb-sep { color: var(--text-tertiary); }
+    .breadcrumb-current { color: #FFF; font-weight: 500; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: var(--radius-xs);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .pill-telemetry b { color: #FFF; font-weight: 600; }
+    .pill-telemetry.cyan { border-color: rgba(0, 245, 212, 0.25); color: var(--cyan-bright); }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.12s ease;
+      border: 1px solid var(--border-light);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-tertiary);
+    }
+
+    .btn-cyan {
+      background: var(--cyan-bright);
+      color: var(--bg-void);
+      border-color: var(--cyan-bright);
+      font-weight: 600;
+    }
+
+    .btn-cyan:hover {
+      background: var(--cyan-dim);
+      border-color: var(--cyan-dim);
+    }
+
+    /* Content Canvas */
+    .content-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 20px 30px;
+      position: relative;
+    }
+
+    .view-container {
+      display: none;
+      animation: tabFade 0.15s ease-out;
+    }
+
+    .view-container.active {
+      display: block;
+    }
+
+    @keyframes tabFade {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================ */
+    /* VIEW: OVERVIEW (Dense, Industrial Grid)                      */
+    /* ============================================================ */
+    .metric-row {
+      display: grid;
+      grid-template-columns: 220px 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      position: relative;
+    }
+
+    .card-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .card-value {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 600;
+      color: #FFF;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Linear Posture Bar */
+    .posture-stat-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .posture-bar-track {
+      height: 4px;
+      background: var(--border-subtle);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0 8px;
+    }
+
+    .posture-bar-fill {
+      height: 100%;
+      background: var(--cyan-bright);
+      width: 84.5%;
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    /* Attack Vector Banner (Sharp, Alert Style) */
+    .attack-strip {
+      background: rgba(255, 51, 102, 0.04);
+      border: 1px solid var(--sev-crit-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .attack-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .crit-pill {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      background: var(--sev-crit);
+      color: #FFF;
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .attack-chain-nodes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .chain-node {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      padding: 2px 7px;
+      border-radius: var(--radius-xs);
+      color: var(--text-primary);
+    }
+
+    .chain-node.target {
+      border-color: var(--sev-crit);
+      color: var(--sev-crit);
+      font-weight: 600;
+    }
+
+    .chain-sep {
+      color: var(--sev-crit);
+      font-size: 10px;
+    }
+
+    /* 2-Column Split: Telemetry Table & Top Issues */
+    .split-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 14px;
+    }
+
+    /* Clean Dense Data Table */
+    .data-table-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .table-header-bar {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .table-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--border-subtle);
+      font-weight: 500;
+    }
+
+    table.data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    table.data-table tr:hover td {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .tag-sev {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      display: inline-block;
+    }
+
+    .tag-sev.crit { background: var(--sev-crit-bg); color: var(--sev-crit); border: 1px solid var(--sev-crit-border); }
+    .tag-sev.high { background: var(--sev-high-bg); color: var(--sev-high); border: 1px solid var(--sev-high-border); }
+    .tag-sev.med { background: var(--sev-med-bg); color: var(--sev-med); border: 1px solid var(--sev-med-border); }
+    .tag-sev.low { background: var(--sev-low-bg); color: var(--sev-low); border: 1px solid var(--sev-low-border); }
+
+    .code-id {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan-bright);
+    }
+
+    /* Right Mini Feed */
+    .feed-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .feed-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .feed-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+
+    .feed-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .feed-item-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: #FFF;
+    }
+
+    .feed-item-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+    }
+
+    /* ============================================================ */
+    /* VIEW: ATTACK GRAPH (Architectural Network Canvas)            */
+    /* ============================================================ */
+    .graph-viewport {
+      background: #050608;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      height: 680px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .graph-svg-wrapper {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+      cursor: grab;
+    }
+
+    .graph-hud-bar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(14, 16, 21, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      gap: 2px;
+      z-index: 10;
+    }
+
+    .hud-btn {
+      width: 26px;
+      height: 26px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .hud-btn:hover {
+      background: var(--bg-hover);
+      color: #FFF;
+    }
+
+    .graph-details-aside {
+      width: 320px;
+      border-left: 1px solid var(--border-subtle);
+      background: var(--bg-panel);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .aside-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .prop-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .prop-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+    }
+
+    .prop-val {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: #FFF;
+      word-break: break-all;
+    }
+
+    /* Edge & Node SVG styles */
+    .edge-link {
+      stroke: var(--border-light);
+      stroke-width: 1.5;
+    }
+
+    .edge-exploit {
+      stroke: var(--sev-crit);
+      stroke-width: 2;
+      stroke-dasharray: 6 3;
+      animation: exploitFlow 1.2s linear infinite;
+    }
+
+    @keyframes exploitFlow {
+      to { stroke-dashoffset: -18; }
+    }
+
+    .graph-node {
+      cursor: pointer;
+      transition: filter 0.15s ease;
+    }
+
+    .graph-node:hover {
+      filter: drop-shadow(0 0 8px rgba(0, 245, 212, 0.4));
+    }
+
+    .node-text {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      fill: #FFF;
+      text-anchor: middle;
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    .node-sub {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      fill: var(--text-tertiary);
+      text-anchor: middle;
+      pointer-events: none;
+    }
+
+    /* ============================================================ */
+    /* VIEW: SCAN RUNNER & TELEMETRY TERMINAL                       */
+    /* ============================================================ */
+    .scan-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 14px;
+    }
+
+    .form-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      font-weight: 600;
+    }
+
+    .field-input, .field-select {
+      background: var(--bg-void);
+      border: 1px solid var(--border-light);
+      color: #FFF;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .field-input:focus, .field-select:focus {
+      border-color: var(--cyan-bright);
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .service-chk {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--bg-elevated);
+      padding: 6px 8px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+      user-select: none;
+    }
+
+    .service-chk:hover {
+      border-color: var(--border-light);
+      color: #FFF;
+    }
+
+    .service-chk input { accent-color: var(--cyan-bright); }
+
+    /* Console Container */
+    .console-frame {
+      background: #040507;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+
+    .console-header {
+      height: 34px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      color: var(--text-tertiary);
+      font-size: 10.5px;
+    }
+
+    .console-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      line-height: 1.5;
+    }
+
+    .c-line { display: flex; gap: 8px; }
+    .c-ts { color: var(--text-tertiary); flex-shrink: 0; }
+    .c-tag { font-weight: 600; flex-shrink: 0; }
+    .c-tag.info { color: #38BDF8; }
+    .c-tag.warn { color: var(--sev-high); }
+    .c-tag.crit { color: var(--sev-crit); }
+    .c-tag.ok { color: var(--cyan-bright); }
+    .c-msg { color: var(--text-primary); }
+
+    /* ============================================================ */
+    /* AI INTELLIGENCE SLIDE-OVER DRAWER                            */
+    /* ============================================================ */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      display: none;
+    }
+
+    .slide-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 580px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-light);
+      z-index: 101;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide-drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-top {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .drawer-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    .drawer-box-header {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cli-box {
+      background: var(--bg-void);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xs);
+      padding: 10px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--cyan-bright);
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .btn-copy-code {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      padding: 2px 6px;
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+    }
+
+    .btn-copy-code:hover { color: #FFF; border-color: var(--cyan-bright); }
+
+    /* Minimal Toast */
+    .app-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--cyan-bright);
+      color: #FFF;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .app-toast.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <div class="brand-icon">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+            <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          CloudSentinel
+          <span class="brand-version">v1.0</span>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <div class="nav-group-label">Analysis</div>
+        
+        <div class="nav-item active" onclick="switchTab('overview', this)">
+          <div class="nav-item-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="7" height="9" rx="1"/>
+              <rect x="14" y="3" width="7" height="5" rx="1"/>
+              <rect x="14" y="12" width="7" height="9" rx="1"/>
+              <rect x="3" y="16" width="7" height="5" rx="1"/>
+            </svg>
+            Overview
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="switchTab('graph', this)">
+          <div class="nav-item-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            Attack Graph
+          </div>
+          <span class="badge-count alert">1 Chain</span>
+        </div>
+
+        <div class="nav-item" onclick="switchTab('findings', this)">
+          <div class="nav-item-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Findings
+          </div>
+          <span class="badge-count">14</span>
+        </div>
+
+        <div class="nav-group-label" style="margin-top: 8px;">Operations</div>
+
+        <div class="nav-item" onclick="switchTab('scan', this)">
+          <div class="nav-item-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            Cloud Scanner
+          </div>
+        </div>
+
+        <div class="nav-item" onclick="switchTab('compliance', this)">
+          <div class="nav-item-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            CIS Benchmarks
+          </div>
+          <span class="badge-count">85%</span>
+        </div>
+
+        <div class="nav-item" onclick="switchTab('reports', this)">
+          <div class="nav-item-left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Reports Export
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="account-badge">
+          <div class="status-dot"></div>
+          <div class="account-meta">
+            <div class="account-name">cloudsentinel-eval</div>
+            <div class="account-id">250675044619 &middot; ap-south-1</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="main-area">
+      <!-- HEADER -->
+      <header class="topbar">
+        <div class="breadcrumb">
+          <span>Target</span>
+          <span class="breadcrumb-sep">/</span>
+          <span>AWS Production Sandbox</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current" id="view-title-text">Overview &amp; Posture</span>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="pill-telemetry">
+            <span>BEDROCK:</span>
+            <b>claude-haiku-4.5</b>
+          </div>
+          <div class="pill-telemetry cyan">
+            <span>AUDIT:</span>
+            <b>PASSED 19/198</b>
+          </div>
+          <button class="btn btn-cyan" onclick="switchTab('scan', null); triggerScan();">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Run Scan
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEW BODY -->
+      <div class="content-body">
+
+        <!-- ============================================== -->
+        <!-- VIEW 1: OVERVIEW & POSTURE                     -->
+        <!-- ============================================== -->
+        <div class="view-container active" id="view-overview">
+          
+          <!-- Key Metrics -->
+          <div class="metric-row">
+            <div class="card posture-stat-box">
+              <div class="card-title">
+                <span>Security Posture</span>
+                <span style="color: var(--cyan-bright); font-size: 11px;">84.5%</span>
+              </div>
+              <div class="card-value" style="color: var(--cyan-bright);">84.5<span style="font-size: 13px; color: var(--text-tertiary);">/100</span></div>
+              <div class="posture-bar-track">
+                <div class="posture-bar-fill"></div>
+              </div>
+              <div class="card-meta">
+                <span>Grade: Compliant (CIS v1.5)</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span>Total Findings</span>
+                <span>Active</span>
+              </div>
+              <div class="card-value">14</div>
+              <div class="card-meta">
+                <span style="color: var(--sev-crit);">&bull; 2 Critical</span>
+                <span style="color: var(--sev-high);">&bull; 4 High</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span>Assets Evaluated</span>
+                <span>boto3</span>
+              </div>
+              <div class="card-value">19</div>
+              <div class="card-meta">
+                <span>Across 8 AWS services</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span>Attack Trajectories</span>
+                <span style="color: var(--sev-crit);">ALERT</span>
+              </div>
+              <div class="card-value" style="color: var(--sev-crit);">1 <span style="font-size: 12px; color: var(--text-tertiary);">multi-hop</span></div>
+              <div class="card-meta">
+                <span>Internet &rarr; S3 Crown Jewel</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Highlight Attack Trajectory Bar -->
+          <div class="attack-strip">
+            <div class="attack-strip-left">
+              <span class="crit-pill">CRITICAL EXPLOIT CHAIN</span>
+              <div class="attack-chain-nodes">
+                <span class="chain-node">0.0.0.0/0 (Internet)</span>
+                <span class="chain-sep">&rarr;</span>
+                <span class="chain-node">Port 22/SSH (sg-07f9c)</span>
+                <span class="chain-sep">&rarr;</span>
+                <span class="chain-node">i-0a8b79c3d4e (Bastion)</span>
+                <span class="chain-sep">&rarr;</span>
+                <span class="chain-node">ProdAppAdminRole (*:*)</span>
+                <span class="chain-sep">&rarr;</span>
+                <span class="chain-node target">arn:aws:s3:::finance-data-bucket</span>
+              </div>
+            </div>
+            <button class="btn" onclick="switchTab('graph', null)">
+              Inspect Graph &rarr;
+            </button>
+          </div>
+
+          <!-- Two-Column Layout -->
+          <div class="split-grid">
+            <!-- Left Data Table -->
+            <div class="data-table-container">
+              <div class="table-header-bar">
+                <div class="table-title">
+                  <span>Active Security Misconfigurations</span>
+                  <span class="badge-count">14</span>
+                </div>
+                <button class="btn" style="padding: 3px 8px; font-size: 11px;" onclick="switchTab('findings', null)">View Full Table</button>
+              </div>
+
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 80px;">Severity</th>
+                    <th style="width: 120px;">Rule ID</th>
+                    <th>Description</th>
+                    <th>Affected Resource</th>
+                    <th style="text-align: right; width: 60px;">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr onclick="inspectFinding('AWS-CIS-3.1', 'CloudTrail Multi-Region Logging Disabled', 'CRITICAL', 'global-cloudtrail', 'Ensure CloudTrail records API events across all AWS regions to prevent unmonitored adversary activity.')">
+                    <td><span class="tag-sev crit">CRITICAL</span></td>
+                    <td><span class="code-id">AWS-CIS-3.1</span></td>
+                    <td style="color: #FFF;">CloudTrail multi-region recording disabled</td>
+                    <td style="font-family: var(--font-mono); font-size: 11px;">global-cloudtrail</td>
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-crit);">9.5</td>
+                  </tr>
+
+                  <tr onclick="inspectFinding('AWS-IAM-002', 'Administrative Wildcard Policy on Role', 'CRITICAL', 'ProdAppAdminRole', 'Scope IAM statements using least-privilege Resource and Action elements.')">
+                    <td><span class="tag-sev crit">CRITICAL</span></td>
+                    <td><span class="code-id">AWS-IAM-002</span></td>
+                    <td style="color: #FFF;">Full administrative '*:*' policy on IAM Role</td>
+                    <td style="font-family: var(--font-mono); font-size: 11px;">ProdAppAdminRole</td>
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-crit);">9.2</td>
+                  </tr>
+
+                  <tr onclick="inspectFinding('AWS-NET-001', 'Security Group Exposes SSH Port 22 to Internet', 'HIGH', 'sg-07f9c812b', 'Restrict port 22 ingress to authorized bastion IPs instead of 0.0.0.0/0.')">
+                    <td><span class="tag-sev high">HIGH</span></td>
+                    <td><span class="code-id">AWS-NET-001</span></td>
+                    <td style="color: #FFF;">Inbound SSH open to global internet (0.0.0.0/0)</td>
+                    <td style="font-family: var(--font-mono); font-size: 11px;">sg-07f9c812b</td>
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-high);">7.8</td>
+                  </tr>
+
+                  <tr onclick="inspectFinding('AWS-S3-001', 'Public S3 Bucket ACL Allows Global Read', 'HIGH', 'finance-data-bucket', 'Apply S3 Block Public Access to prevent anonymous object access.')">
+                    <td><span class="tag-sev high">HIGH</span></td>
+                    <td><span class="code-id">AWS-S3-001</span></td>
+                    <td style="color: #FFF;">Public read ACL detected on storage bucket</td>
+                    <td style="font-family: var(--font-mono); font-size: 11px;">finance-data-bucket</td>
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-high);">7.5</td>
+                  </tr>
+
+                  <tr onclick="inspectFinding('AWS-CIS-3.5', 'AWS Config Configuration Recorder Disabled', 'MEDIUM', 'default-recorder', 'Enable AWS Config recording for all resource types in ap-south-1.')">
+                    <td><span class="tag-sev med">MEDIUM</span></td>
+                    <td><span class="code-id">AWS-CIS-3.5</span></td>
+                    <td style="color: #FFF;">Configuration recorder disabled in ap-south-1</td>
+                    <td style="font-family: var(--font-mono); font-size: 11px;">default-recorder</td>
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-med);">5.5</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Right Feed: Priorities & Service Inventory -->
+            <div class="feed-panel">
+              <div class="table-header-bar">
+                <div class="table-title">Priority Remediations</div>
+                <span class="badge-count" style="color: var(--cyan-bright);">Bedrock Ready</span>
+              </div>
+
+              <div class="feed-item" onclick="inspectFinding('AWS-CIS-3.1', 'CloudTrail Multi-Region Logging Disabled', 'CRITICAL', 'global-cloudtrail', 'Enable multi-region trail.')">
+                <div class="feed-item-top">
+                  <span class="feed-item-title">Enable CloudTrail Multi-Region</span>
+                  <span class="tag-sev crit">9.5</span>
+                </div>
+                <div class="feed-item-sub">global-cloudtrail &middot; CIS 3.1</div>
+              </div>
+
+              <div class="feed-item" onclick="inspectFinding('AWS-IAM-002', 'Administrative Wildcard Policy on Role', 'CRITICAL', 'ProdAppAdminRole', 'Scope permissions.')">
+                <div class="feed-item-top">
+                  <span class="feed-item-title">Revoke Wildcard IAM Statement</span>
+                  <span class="tag-sev crit">9.2</span>
+                </div>
+                <div class="feed-item-sub">ProdAppAdminRole &middot; Least Privilege</div>
+              </div>
+
+              <div class="feed-item" onclick="inspectFinding('AWS-NET-001', 'Security Group Exposes SSH Port 22 to Internet', 'HIGH', 'sg-07f9c812b', 'Close port 22.')">
+                <div class="feed-item-top">
+                  <span class="feed-item-title">Close Security Group Port 22</span>
+                  <span class="tag-sev high">7.8</span>
+                </div>
+                <div class="feed-item-sub">sg-07f9c812b &middot; Ingress Isolation</div>
+              </div>
+
+              <div style="padding: 14px; margin-top: auto; border-top: 1px solid var(--border-subtle); background: var(--bg-void);">
+                <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 8px;">
+                  Service Coverage (19 Resources)
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <span class="badge-count">IAM: 5</span>
+                  <span class="badge-count">S3: 3</span>
+                  <span class="badge-count">EC2: 2</span>
+                  <span class="badge-count">VPC: 3</span>
+                  <span class="badge-count">RDS: 2</span>
+                  <span class="badge-count">CT/Config: 4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 2: ATTACK PATH GRAPH (Cyber Blueprint)   -->
+        <!-- ============================================== -->
+        <div class="view-container" id="view-graph">
+          <div class="graph-viewport">
+            <!-- HUD Tooling -->
+            <div class="graph-hud-bar">
+              <button class="hud-btn" title="Zoom In" onclick="zoomSvg(1.2)">+</button>
+              <button class="hud-btn" title="Zoom Out" onclick="zoomSvg(0.8)">&minus;</button>
+              <button class="hud-btn" title="Reset View" onclick="resetSvg()">R</button>
+            </div>
+
+            <!-- SVG Topology Canvas -->
+            <div class="graph-svg-wrapper">
+              <svg id="svg-canvas" style="width: 100%; height: 100%;" viewBox="0 0 920 620">
+                <defs>
+                  <marker id="arrow-normal" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#242A37" />
+                  </marker>
+                  <marker id="arrow-exploit" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF3366" />
+                  </marker>
+                </defs>
+
+                <!-- Normal Structural Mesh Edges -->
+                <line x1="260" y1="180" x2="460" y2="180" class="edge-link" marker-end="url(#arrow-normal)"/>
+                <line x1="460" y1="180" x2="660" y2="180" class="edge-link" marker-end="url(#arrow-normal)"/>
+                <line x1="660" y1="180" x2="840" y2="180" class="edge-link" marker-end="url(#arrow-normal)"/>
+                <line x1="460" y1="380" x2="840" y2="500" class="edge-link" marker-end="url(#arrow-normal)"/>
+
+                <!-- High-Voltage Attack Chain Edges -->
+                <line x1="100" y1="380" x2="280" y2="380" class="edge-exploit" marker-end="url(#arrow-exploit)"/>
+                <line x1="280" y1="380" x2="460" y2="380" class="edge-exploit" marker-end="url(#arrow-exploit)"/>
+                <line x1="460" y1="380" x2="660" y2="380" class="edge-exploit" marker-end="url(#arrow-exploit)"/>
+                <line x1="660" y1="380" x2="840" y2="380" class="edge-exploit" marker-end="url(#arrow-exploit)"/>
+
+                <!-- Node: Internet Entry -->
+                <g class="graph-node" transform="translate(100, 380)" onclick="displayAsset('Public Internet (0.0.0.0/0)', 'External::Internet', 'PERIMETER_INGRESS', 'Untrusted internet gateway ingress point.', 'CRITICAL')">
+                  <circle cx="0" cy="0" r="22" fill="#0E1015" stroke="#00F5D4" stroke-width="1.8"/>
+                  <text y="4" class="node-text">INTERNET</text>
+                  <text y="36" class="node-sub">0.0.0.0/0</text>
+                </g>
+
+                <!-- Node: Security Group -->
+                <g class="graph-node" transform="translate(280, 380)" onclick="displayAsset('sg-07f9c812b', 'AWS::EC2::SecurityGroup', 'PORT_22_OPEN', 'Ingress rule permits SSH ingress from global CIDR.', 'HIGH')">
+                  <circle cx="0" cy="0" r="22" fill="#0E1015" stroke="#FF8833" stroke-width="1.8"/>
+                  <text y="4" class="node-text">SG: SSH</text>
+                  <text y="36" class="node-sub">Port 22</text>
+                </g>
+
+                <!-- Node: Compute -->
+                <g class="graph-node" transform="translate(460, 380)" onclick="displayAsset('i-0a8b79c3d4e', 'AWS::EC2::Instance', 'PUBLIC_IP_ATTACHED', 'Public instance with attached IAM Instance Profile ProdAppAdminRole.', 'CRITICAL')">
+                  <circle cx="0" cy="0" r="24" fill="#0E1015" stroke="#FF3366" stroke-width="2"/>
+                  <text y="4" class="node-text">EC2 BASTION</text>
+                  <text y="38" class="node-sub">13.232.41.88</text>
+                </g>
+
+                <!-- Node: IAM Role -->
+                <g class="graph-node" transform="translate(660, 380)" onclick="displayAsset('ProdAppAdminRole', 'AWS::IAM::Role', 'ADMIN_PRIVILEGE', 'Attached policy statement grants wildcard Action:* on Resource:*.', 'CRITICAL')">
+                  <circle cx="0" cy="0" r="22" fill="#0E1015" stroke="#FFCC00" stroke-width="1.8"/>
+                  <text y="4" class="node-text">IAM ROLE</text>
+                  <text y="36" class="node-sub">AdminPrivs</text>
+                </g>
+
+                <!-- Node: Target Crown Jewel S3 -->
+                <g class="graph-node" transform="translate(840, 380)" onclick="displayAsset('finance-data-bucket', 'AWS::S3::Bucket', 'CROWN_JEWEL_EXPOSURE', 'Critical storage bucket storing financial audit logs and customer records.', 'CRITICAL')">
+                  <circle cx="0" cy="0" r="26" fill="#1C0910" stroke="#FF3366" stroke-width="2.5"/>
+                  <text y="4" class="node-text">S3 TARGET</text>
+                  <text y="42" class="node-sub" style="fill: var(--sev-crit);">Crown Jewel</text>
+                </g>
+
+                <!-- Isolated VPC Infrastructure Nodes -->
+                <g class="graph-node" transform="translate(260, 180)" onclick="displayAsset('vpc-091fca2', 'AWS::EC2::VPC', 'DEFAULT_VPC', 'Default VPC utilized for testing workloads.', 'MEDIUM')">
+                  <circle cx="0" cy="0" r="18" fill="#0E1015" stroke="#242A37" stroke-width="1.5"/>
+                  <text y="3" class="node-text">VPC</text>
+                  <text y="30" class="node-sub">172.31.0.0/16</text>
+                </g>
+
+                <g class="graph-node" transform="translate(460, 180)" onclick="displayAsset('subnet-private-1a', 'AWS::EC2::Subnet', 'ISOLATED_SUBNET', 'Private subnet with local routing table only.', 'LOW')">
+                  <circle cx="0" cy="0" r="18" fill="#0E1015" stroke="#242A37" stroke-width="1.5"/>
+                  <text y="3" class="node-text">SUBNET</text>
+                  <text y="30" class="node-sub">ap-south-1a</text>
+                </g>
+
+                <g class="graph-node" transform="translate(660, 180)" onclick="displayAsset('rds-database-prod', 'AWS::RDS::DBInstance', 'ENCRYPTED_DB', 'PostgreSQL instance configured with AWS KMS storage encryption.', 'LOW')">
+                  <circle cx="0" cy="0" r="20" fill="#0E1015" stroke="#00F5D4" stroke-width="1.5"/>
+                  <text y="3" class="node-text">RDS DB</text>
+                  <text y="34" class="node-sub">KMS Encrypted</text>
+                </g>
+
+                <g class="graph-node" transform="translate(840, 500)" onclick="displayAsset('cloudsentinel-audit-s4', 'AWS::S3::Bucket', 'LOG_STORAGE', 'Dedicated bucket receiving CloudTrail audit logs.', 'LOW')">
+                  <circle cx="0" cy="0" r="18" fill="#0E1015" stroke="#242A37" stroke-width="1.5"/>
+                  <text y="3" class="node-text">S3 LOGS</text>
+                  <text y="30" class="node-sub">Private</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Asset Telemetry Aside -->
+            <aside class="graph-details-aside">
+              <div class="aside-title">
+                <span>Asset Telemetry</span>
+                <span class="tag-sev crit" id="asset-badge">CRITICAL</span>
+              </div>
+
+              <div class="prop-row">
+                <span class="prop-label">Resource ID</span>
+                <span class="prop-val" id="asset-id">i-0a8b79c3d4e</span>
+              </div>
+
+              <div class="prop-row">
+                <span class="prop-label">Entity Classification</span>
+                <span class="prop-val" id="asset-type">AWS::EC2::Instance</span>
+              </div>
+
+              <div class="prop-row">
+                <span class="prop-label">Condition &amp; Exposure</span>
+                <span class="prop-val" id="asset-exposure" style="color: var(--cyan-bright);">PUBLIC_IP_ATTACHED</span>
+              </div>
+
+              <div class="prop-row">
+                <span class="prop-label">Attack Path Graph Association</span>
+                <span class="prop-val" id="asset-desc" style="font-family: var(--font-sans); color: var(--text-secondary); font-size: 11.5px;">
+                  Public compute instance possessing attached IAM role ProdAppAdminRole, creating an exploitable privilege escalation trajectory into sensitive S3 storage.
+                </span>
+              </div>
+
+              <div style="margin-top: auto;">
+                <button class="btn btn-cyan" style="width: 100%; justify-content: center;" onclick="switchTab('findings', null)">
+                  Inspect Rule Violations
+                </button>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 3: FINDINGS & BEDROCK AI                  -->
+        <!-- ============================================== -->
+        <div class="view-container" id="view-findings">
+          <div class="data-table-container">
+            <div class="table-header-bar">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="table-title">Misconfiguration Register</span>
+                <div style="display: flex; gap: 4px; margin-left: 12px;">
+                  <button class="btn" style="padding: 2px 7px; font-size: 11px;" onclick="filterTable('ALL')">All</button>
+                  <button class="btn" style="padding: 2px 7px; font-size: 11px; color: var(--sev-crit);" onclick="filterTable('CRITICAL')">Critical</button>
+                  <button class="btn" style="padding: 2px 7px; font-size: 11px; color: var(--sev-high);" onclick="filterTable('HIGH')">High</button>
+                  <button class="btn" style="padding: 2px 7px; font-size: 11px; color: var(--sev-med);" onclick="filterTable('MEDIUM')">Medium</button>
+                </div>
+              </div>
+              <input type="text" class="field-input" placeholder="Search finding or ARN..." style="width: 200px; padding: 4px 8px; font-size: 11.5px;" onkeyup="searchFilter(this.value)">
+            </div>
+
+            <table class="data-table" id="findings-table">
+              <thead>
+                <tr>
+                  <th style="width: 75px;">Severity</th>
+                  <th style="width: 110px;">Rule ID</th>
+                  <th>Finding Title</th>
+                  <th style="width: 220px;">Resource Target</th>
+                  <th style="width: 65px; text-align: right;">Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-sev="CRITICAL" onclick="inspectFinding('AWS-CIS-3.1', 'CloudTrail Multi-Region Logging Disabled', 'CRITICAL', 'global-cloudtrail', 'Ensure CloudTrail records API events across all AWS regions to prevent unmonitored adversary activity.')">
+                  <td><span class="tag-sev crit">CRITICAL</span></td>
+                  <td><span class="code-id">AWS-CIS-3.1</span></td>
+                  <td style="color: #FFF;">CloudTrail multi-region audit capture disabled</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">global-cloudtrail</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-crit);">9.5</td>
+                </tr>
+
+                <tr data-sev="CRITICAL" onclick="inspectFinding('AWS-IAM-002', 'Administrative Wildcard Policy on Role', 'CRITICAL', 'ProdAppAdminRole', 'Scope IAM statements using least-privilege Resource and Action elements.')">
+                  <td><span class="tag-sev crit">CRITICAL</span></td>
+                  <td><span class="code-id">AWS-IAM-002</span></td>
+                  <td style="color: #FFF;">Overly permissive '*:*' statement attached to IAM Role</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">ProdAppAdminRole</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-crit);">9.2</td>
+                </tr>
+
+                <tr data-sev="HIGH" onclick="inspectFinding('AWS-NET-001', 'Security Group Exposes SSH Port 22 to Internet', 'HIGH', 'sg-07f9c812b', 'Restrict port 22 ingress to authorized bastion IPs instead of 0.0.0.0/0.')">
+                  <td><span class="tag-sev high">HIGH</span></td>
+                  <td><span class="code-id">AWS-NET-001</span></td>
+                  <td style="color: #FFF;">Security group ingress permits 0.0.0.0/0 on port 22</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">sg-07f9c812b</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-high);">7.8</td>
+                </tr>
+
+                <tr data-sev="HIGH" onclick="inspectFinding('AWS-S3-001', 'Public S3 Bucket ACL Allows Global Read', 'HIGH', 'finance-data-bucket', 'Apply S3 Block Public Access to prevent anonymous object access.')">
+                  <td><span class="tag-sev high">HIGH</span></td>
+                  <td><span class="code-id">AWS-S3-001</span></td>
+                  <td style="color: #FFF;">S3 bucket grants anonymous global read permission</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">finance-data-bucket</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-high);">7.5</td>
+                </tr>
+
+                <tr data-sev="MEDIUM" onclick="inspectFinding('AWS-CIS-3.5', 'AWS Config Configuration Recorder Disabled', 'MEDIUM', 'default-recorder', 'Enable AWS Config recording for all resource types in ap-south-1.')">
+                  <td><span class="tag-sev med">MEDIUM</span></td>
+                  <td><span class="code-id">AWS-CIS-3.5</span></td>
+                  <td style="color: #FFF;">AWS Config recording inactive in active region</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">default-recorder</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-med);">5.5</td>
+                </tr>
+
+                <tr data-sev="MEDIUM" onclick="inspectFinding('AWS-S3-002', 'S3 Object Versioning Disabled', 'MEDIUM', 'cloudsentinel-eval-s4-logs', 'Enable bucket object versioning to protect against accidental overwrite or deletion.')">
+                  <td><span class="tag-sev med">MEDIUM</span></td>
+                  <td><span class="code-id">AWS-S3-002</span></td>
+                  <td style="color: #FFF;">S3 bucket lacks object versioning protection</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">cloudsentinel-eval-s4-logs</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--sev-med);">5.0</td>
+                </tr>
+
+                <tr data-sev="LOW" onclick="inspectFinding('AWS-S3-003', 'S3 Server Access Logging Disabled', 'LOW', 'cloudsentinel-eval-lab-s1', 'Enable S3 server access logging to track read/write operations.')">
+                  <td><span class="tag-sev low">LOW</span></td>
+                  <td><span class="code-id">AWS-S3-003</span></td>
+                  <td style="color: #FFF;">Server access logging not configured for storage bucket</td>
+                  <td style="font-family: var(--font-mono); font-size: 11px;">cloudsentinel-eval-lab-s1</td>
+                  <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: var(--cyan-bright);">2.5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 4: SCANNER & TELEMETRY                   -->
+        <!-- ============================================== -->
+        <div class="view-container" id="view-scan">
+          <div class="scan-layout">
+            <div class="form-panel">
+              <div class="field-label">Cloud Target</div>
+              <div class="field-input" style="font-family: var(--font-mono); font-size: 11.5px;">
+                AWS (Profile: cloudsentinel-eval)
+              </div>
+
+              <div class="form-field">
+                <span class="field-label">Evaluation Region</span>
+                <select class="field-select">
+                  <option>ap-south-1 (Asia Pacific - Mumbai)</option>
+                  <option>us-east-1 (N. Virginia)</option>
+                  <option>Multi-Region Global</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <span class="field-label">Boto3 Collectors</span>
+                <div class="service-grid">
+                  <label class="service-chk"><input type="checkbox" checked> IAM</label>
+                  <label class="service-chk"><input type="checkbox" checked> EC2</label>
+                  <label class="service-chk"><input type="checkbox" checked> S3</label>
+                  <label class="service-chk"><input type="checkbox" checked> VPC/SG</label>
+                  <label class="service-chk"><input type="checkbox" checked> RDS</label>
+                  <label class="service-chk"><input type="checkbox" checked> CloudTrail</label>
+                  <label class="service-chk"><input type="checkbox" checked> Config</label>
+                  <label class="service-chk"><input type="checkbox" checked> KMS</label>
+                </div>
+              </div>
+
+              <button class="btn btn-cyan" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="triggerScan()">
+                Execute Scan Job
+              </button>
+            </div>
+
+            <!-- Console Log -->
+            <div class="console-frame">
+              <div class="console-header">
+                <span>telemetry_stream.log</span>
+                <span style="color: var(--cyan-bright);">● LIVE</span>
+              </div>
+              <div class="console-body" id="console-stream">
+                <div class="c-line">
+                  <span class="c-ts">15:10:01</span>
+                  <span class="c-tag ok">[INIT]</span>
+                  <span class="c-msg">CloudSentinel orchestrator v1.0 initialized with active AWS session.</span>
+                </div>
+                <div class="c-line">
+                  <span class="c-ts">15:10:02</span>
+                  <span class="c-tag info">[COLLECT]</span>
+                  <span class="c-msg">IAM: Enumerated 5 users, 4 roles, 12 policy attachments.</span>
+                </div>
+                <div class="c-line">
+                  <span class="c-ts">15:10:03</span>
+                  <span class="c-tag info">[COLLECT]</span>
+                  <span class="c-msg">S3: Evaluated 3 buckets (PublicAccessBlock, ACLs, KMS encryption).</span>
+                </div>
+                <div class="c-line">
+                  <span class="c-ts">15:10:04</span>
+                  <span class="c-tag warn">[ANALYZE]</span>
+                  <span class="c-msg">AWS-CIS-3.1 detected on CloudTrail 'global-cloudtrail' (IsMultiRegion=false).</span>
+                </div>
+                <div class="c-line">
+                  <span class="c-ts">15:10:05</span>
+                  <span class="c-tag crit">[ATTACK]</span>
+                  <span class="c-msg">AttackPathFinder: Multi-hop trajectory discovered &rarr; finance-data-bucket.</span>
+                </div>
+                <div class="c-line">
+                  <span class="c-ts">15:10:06</span>
+                  <span class="c-tag ok">[BEDROCK]</span>
+                  <span class="c-msg">Bedrock Claude Haiku: Generated contextual explanation &amp; remediation playbooks.</span>
+                </div>
+                <div class="c-line">
+                  <span class="c-ts">15:10:07</span>
+                  <span class="c-tag ok">[COMPLETE]</span>
+                  <span class="c-msg">Scan finished in 8.42s &middot; 14 findings stored &middot; Assessment reports compiled.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 5: CIS BENCHMARKS                         -->
+        <!-- ============================================== -->
+        <div class="view-container" id="view-compliance">
+          <div style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-weight: 600; font-size: 13.5px; color: #FFF;">CIS AWS Foundations Benchmark v1.5 Compliance</div>
+              <div style="font-size: 11.5px; color: var(--text-tertiary);">Automated audit across 20 core controls</div>
+            </div>
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <span class="tag-sev low" style="font-size: 12px; padding: 4px 10px;">85.0% COMPLIANT</span>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">17 PASS &middot; 3 FAIL</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="card">
+              <div class="card-title">
+                <span class="code-id">CIS 1.5</span>
+                <span class="tag-sev low">PASS</span>
+              </div>
+              <div style="font-weight: 500; color: #FFF; font-size: 12.5px;">MFA Enabled for All Console Users</div>
+              <div class="card-meta">All human IAM principals enforce virtual multi-factor authentication.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span class="code-id">CIS 1.16</span>
+                <span class="tag-sev crit">FAIL</span>
+              </div>
+              <div style="font-weight: 500; color: #FFF; font-size: 12.5px;">Restrict Full Administrative '*:*' Statements</div>
+              <div class="card-meta">Role 'ProdAppAdminRole' attaches unrestricted administrative statement.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span class="code-id">CIS 2.1.1</span>
+                <span class="tag-sev low">PASS</span>
+              </div>
+              <div style="font-weight: 500; color: #FFF; font-size: 12.5px;">Enforce S3 Default Server-Side Encryption</div>
+              <div class="card-meta">Storage buckets require SSE-KMS or AES256 server-side encryption.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span class="code-id">CIS 3.1</span>
+                <span class="tag-sev crit">FAIL</span>
+              </div>
+              <div style="font-weight: 500; color: #FFF; font-size: 12.5px;">Ensure CloudTrail Records Across All Regions</div>
+              <div class="card-meta">Trail 'global-cloudtrail' has IsMultiRegionTrail set to false.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span class="code-id">CIS 4.1</span>
+                <span class="tag-sev crit">FAIL</span>
+              </div>
+              <div style="font-weight: 500; color: #FFF; font-size: 12.5px;">No Ingress on Port 22 from 0.0.0.0/0</div>
+              <div class="card-meta">Security group 'sg-07f9c812b' exposes port 22 globally.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span class="code-id">CIS 2.1.5</span>
+                <span class="tag-sev low">PASS</span>
+              </div>
+              <div style="font-weight: 500; color: #FFF; font-size: 12.5px;">Enforce S3 Block Public Access Setting</div>
+              <div class="card-meta">Account-level S3 public access block flags are enabled.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 6: REPORTS EXPORT                         -->
+        <!-- ============================================== -->
+        <div class="view-container" id="view-reports">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div class="card-title">FORMAT: PDF</div>
+                <div style="font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">Executive PDF Report</div>
+                <div style="font-size: 11.5px; color: var(--text-tertiary);">ReportLab compiled binary with executive summary, CIS scores, and remediation matrix.</div>
+              </div>
+              <button class="btn btn-cyan" style="margin-top: 16px; justify-content: center;" onclick="triggerDownload('PDF')">Download PDF</button>
+            </div>
+
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div class="card-title">FORMAT: HTML</div>
+                <div style="font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">Interactive HTML</div>
+                <div style="font-size: 11.5px; color: var(--text-tertiary);">Standalone dark-mode report with findings tables and AI remediation code blocks.</div>
+              </div>
+              <button class="btn" style="margin-top: 16px; justify-content: center;" onclick="triggerDownload('HTML')">Download HTML</button>
+            </div>
+
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div class="card-title">FORMAT: JSON</div>
+                <div style="font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">Structured JSON</div>
+                <div style="font-size: 11.5px; color: var(--text-tertiary);">Machine-readable schema payload with all graph nodes, edges, and metadata.</div>
+              </div>
+              <button class="btn" style="margin-top: 16px; justify-content: center;" onclick="triggerDownload('JSON')">Download JSON</button>
+            </div>
+
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div class="card-title">FORMAT: CSV</div>
+                <div style="font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">Audit CSV Table</div>
+                <div style="font-size: 11.5px; color: var(--text-tertiary);">Flat findings spreadsheet format for compliance auditors and external review.</div>
+              </div>
+              <button class="btn" style="margin-top: 16px; justify-content: center;" onclick="triggerDownload('CSV')">Download CSV</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- SLIDE-OVER AI INSPECTION DRAWER -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <aside class="slide-drawer" id="slide-drawer">
+    <div class="drawer-top">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="tag-sev crit" id="dr-sev">CRITICAL</span>
+        <span class="code-id" id="dr-rule">AWS-CIS-3.1</span>
+      </div>
+      <button class="btn" style="padding: 2px 7px;" onclick="closeDrawer()">&times;</button>
+    </div>
+
+    <div class="drawer-body">
+      <div>
+        <h3 style="font-size: 15px; font-weight: 600; color: #FFF;" id="dr-title">CloudTrail Multi-Region Logging Disabled</h3>
+        <div style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); margin-top: 3px;" id="dr-res">
+          Target: global-cloudtrail
+        </div>
+      </div>
+
+      <div class="drawer-box">
+        <div class="drawer-box-header">
+          <span>AI Root Cause Analysis (Amazon Bedrock Haiku)</span>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;" id="dr-explanation">
+          Trail <code>global-cloudtrail</code> is only active in a single region. An attacker compromising credentials can conduct malicious lateral activity across secondary unmonitored AWS regions without forensic logging.
+        </p>
+      </div>
+
+      <div class="drawer-box">
+        <div class="drawer-box-header">
+          <span>Executable Remediation (AWS CLI)</span>
+        </div>
+        <div class="cli-box">
+          <button class="btn-copy-code" onclick="copySnippet(this)">Copy</button>
+          <code id="dr-code">aws cloudtrail update-trail \
+  --name global-cloudtrail \
+  --is-multi-region-trail</code>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; display: flex; gap: 8px;">
+        <button class="btn btn-cyan" style="flex: 1; justify-content: center;" onclick="closeDrawer(); triggerToast('Remediation ticket generated.');">
+          Dispatch Remediation
+        </button>
+        <button class="btn" onclick="closeDrawer()">Dismiss</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOAST -->
+  <div class="app-toast" id="app-toast">
+    <span id="toast-text">Operation completed.</span>
+  </div>
+
+  <script>
+    // Tab Switching
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      const target = document.getElementById('view-' + tabId);
+      if (target) target.classList.add('active');
+
+      const labels = {
+        'overview': 'Overview & Posture',
+        'graph': 'Attack Path Knowledge Graph',
+        'findings': 'Security Findings & AI Intelligence',
+        'scan': 'Cloud Scanner Execution',
+        'compliance': 'CIS AWS Benchmark Compliance',
+        'reports': 'Assessment Export Reports'
+      };
+      document.getElementById('view-title-text').innerText = labels[tabId] || 'Overview';
+
+      if (el) {
+        el.classList.add('active');
+      } else {
+        const found = Array.from(document.querySelectorAll('.nav-item')).find(item => item.textContent.toLowerCase().includes(tabId));
+        if (found) found.classList.add('active');
+      }
+    }
+
+    // Graph Asset Telemetry Selection
+    function displayAsset(id, type, exposure, desc, sev) {
+      document.getElementById('asset-id').innerText = id;
+      document.getElementById('asset-type').innerText = type;
+      document.getElementById('asset-exposure').innerText = exposure;
+      document.getElementById('asset-desc').innerText = desc;
+      
+      const badge = document.getElementById('asset-badge');
+      badge.innerText = sev;
+      badge.className = 'tag-sev ' + (sev === 'CRITICAL' ? 'crit' : sev === 'HIGH' ? 'high' : sev === 'MEDIUM' ? 'med' : 'low');
+    }
+
+    // Graph Zoom / Reset
+    let graphScale = 1;
+    function zoomSvg(factor) {
+      graphScale *= factor;
+      const svg = document.getElementById('svg-canvas');
+      svg.style.transform = `scale(${graphScale})`;
+      svg.style.transformOrigin = 'center center';
+      svg.style.transition = 'transform 0.15s ease';
+    }
+
+    function resetSvg() {
+      graphScale = 1;
+      const svg = document.getElementById('svg-canvas');
+      svg.style.transform = 'scale(1)';
+    }
+
+    // Drawer Inspector
+    function inspectFinding(ruleId, title, sev, resourceId, remed) {
+      document.getElementById('dr-rule').innerText = ruleId;
+      document.getElementById('dr-title').innerText = title;
+      document.getElementById('dr-res').innerText = `Target Resource: ${resourceId}`;
+      
+      const sevBadge = document.getElementById('dr-sev');
+      sevBadge.innerText = sev;
+      sevBadge.className = 'tag-sev ' + (sev === 'CRITICAL' ? 'crit' : sev === 'HIGH' ? 'high' : sev === 'MEDIUM' ? 'med' : 'low');
+
+      document.getElementById('dr-code').innerText = 
+        ruleId === 'AWS-CIS-3.1' ? `aws cloudtrail update-trail --name ${resourceId} --is-multi-region-trail` :
+        ruleId === 'AWS-IAM-002' ? `aws iam put-role-policy --role-name ${resourceId} --policy-name ScopedPolicy --policy-document file://scoped.json` :
+        ruleId === 'AWS-NET-001' ? `aws ec2 revoke-security-group-ingress --group-id ${resourceId} --protocol tcp --port 22 --cidr 0.0.0.0/0` :
+        `aws s3api put-public-access-block --bucket ${resourceId} --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true`;
+
+      document.getElementById('drawer-overlay').style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('slide-drawer').classList.add('open');
+      }, 10);
+    }
+
+    function closeDrawer() {
+      document.getElementById('slide-drawer').classList.remove('open');
+      setTimeout(() => {
+        document.getElementById('drawer-overlay').style.display = 'none';
+      }, 200);
+    }
+
+    // Copy to clipboard
+    function copySnippet(btn) {
+      const code = btn.nextElementSibling.innerText;
+      navigator.clipboard.writeText(code);
+      btn.innerText = 'COPIED';
+      setTimeout(() => btn.innerText = 'Copy', 1500);
+    }
+
+    // Findings Filter
+    function filterTable(sev) {
+      const rows = document.querySelectorAll('#findings-table tbody tr');
+      rows.forEach(r => {
+        r.style.display = (sev === 'ALL' || r.dataset.sev === sev) ? '' : 'none';
+      });
+    }
+
+    function searchFilter(val) {
+      const term = val.toLowerCase();
+      const rows = document.querySelectorAll('#findings-table tbody tr');
+      rows.forEach(r => {
+        r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none';
+      });
+    }
+
+    // Toast
+    function triggerToast(msg) {
+      const t = document.getElementById('app-toast');
+      document.getElementById('toast-text').innerText = msg;
+      t.classList.add('visible');
+      setTimeout(() => t.classList.remove('visible'), 3000);
+    }
+
+    // Trigger Scan Simulation
+    function triggerScan() {
+      switchTab('scan', null);
+      const stream = document.getElementById('console-stream');
+      stream.innerHTML = `
+        <div class="c-line">
+          <span class="c-ts">15:15:00</span>
+          <span class="c-tag ok">[START]</span>
+          <span class="c-msg">Initiating Boto3 scan against account 250675044619 (ap-south-1)...</span>
+        </div>
+      `;
+      triggerToast('Scan task queued with orchestrator.');
+
+      const logs = [
+        { ts: '15:15:01', tag: 'info', name: '[IAM]', msg: 'Collected 5 users, 4 roles, 12 policy attachments.' },
+        { ts: '15:15:02', tag: 'info', name: '[S3]', msg: 'Enumerating 3 buckets. Checking encryption and public access blocks.' },
+        { ts: '15:15:03', tag: 'info', name: '[EC2]', msg: 'Discovered 2 instances and attached security groups.' },
+        { ts: '15:15:04', tag: 'warn', name: '[RULES]', msg: 'Evaluated 20 CIS Benchmark controls &rarr; 14 misconfigurations flagged.' },
+        { ts: '15:15:05', tag: 'crit', name: '[GRAPH]', msg: 'Constructed attack graph &rarr; Detected multi-hop trajectory to S3.' },
+        { ts: '15:15:06', tag: 'ok', name: '[BEDROCK]', msg: 'Bedrock Claude Haiku generated contextual root-cause & mitigations.' },
+        { ts: '15:15:07', tag: 'ok', name: '[DONE]', msg: 'Scan complete in 7.94s. All findings persisted to database.' }
+      ];
+
+      logs.forEach((item, idx) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'c-line';
+          div.innerHTML = `
+            <span class="c-ts">${item.ts}</span>
+            <span class="c-tag ${item.tag}">${item.name}</span>
+            <span class="c-msg">${item.msg}</span>
+          `;
+          stream.appendChild(div);
+          stream.scrollTop = stream.scrollHeight;
+        }, (idx + 1) * 600);
+      });
+    }
+
+    function triggerDownload(fmt) {
+      triggerToast(`Compiling ${fmt} report artifact... Download starting.`);
+    }
+  </script>
+</body>
+</html>

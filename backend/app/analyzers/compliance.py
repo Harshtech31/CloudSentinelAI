@@ -18,14 +18,14 @@ from app.core.constants import Severity
 CIS_BENCHMARK_CONTROLS = [
     "1.4",  # Access keys rotated <= 90 days
     "1.5",  # MFA enabled for all IAM users
-    "1.16", # No wildcard admin policies
-    "2.1.1", # S3 default encryption enabled
-    "2.1.3", # S3 access logging enabled
-    "2.1.4", # S3 versioning enabled
-    "2.1.5", # S3 Block Public Access enabled
-    "2.2.1", # EBS volume encryption enabled
-    "2.3.1", # RDS storage encryption enabled
-    "2.3.2", # RDS instance not publicly accessible
+    "1.16",  # No wildcard admin policies
+    "2.1.1",  # S3 default encryption enabled
+    "2.1.3",  # S3 access logging enabled
+    "2.1.4",  # S3 versioning enabled
+    "2.1.5",  # S3 Block Public Access enabled
+    "2.2.1",  # EBS volume encryption enabled
+    "2.3.1",  # RDS storage encryption enabled
+    "2.3.2",  # RDS instance not publicly accessible
     "3.1",  # CloudTrail multi-region active
     "3.2",  # CloudTrail log validation active
     "3.5",  # AWS Config recorder active
@@ -132,9 +132,7 @@ class ComplianceAnalyzer(BaseAnalyzer):
         findings: list[RawFinding] = []
         recorders = resources.get("config_recorders", [])
 
-        has_active_recorder = any(
-            r.get("recording", False) for r in recorders
-        )
+        has_active_recorder = any(r.get("recording", False) for r in recorders)
 
         if not has_active_recorder:
             findings.append(

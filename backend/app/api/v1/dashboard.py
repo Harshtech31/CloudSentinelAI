@@ -106,29 +106,30 @@ async def get_dashboard_trends(
     db: Session = Depends(get_db),
 ) -> DashboardTrendsResponse:
     """Fetch posture trends over the user's completed scans."""
-    scans = (
-        db.scalars(
-            select(Scan)
-            .where(Scan.user_id == user.id, Scan.status == "completed")
-            .order_by(Scan.created_at.asc())
-            .limit(10)
-        ).all()
-    )
+    scans = db.scalars(
+        select(Scan)
+        .where(Scan.user_id == user.id, Scan.status == "completed")
+        .order_by(Scan.created_at.asc())
+        .limit(10)
+    ).all()
 
     points: list[TrendPoint] = []
-    finding_repo = FindingRepository(db)
 
     for scan in scans:
-        findings_count = db.scalar(
-            select(func.count()).select_from(Finding).where(Finding.scan_id == scan.id)
-        ) or 0
-        crit_count = db.scalar(
-            select(func.count())
-            .select_from(Finding)
-            .where(Finding.scan_id == scan.id, Finding.severity == Severity.CRITICAL)
-        ) or 0
+        findings_count = (
+            db.scalar(select(func.count()).select_from(Finding).where(Finding.scan_id == scan.id))
+            or 0
+        )
+        crit_count = (
+            db.scalar(
+                select(func.count())
+                .select_from(Finding)
+                .where(Finding.scan_id == scan.id, Finding.severity == Severity.CRITICAL)
+            )
+            or 0
+        )
         date_str = scan.created_at.strftime("%Y-%m-%d") if scan.created_at else "2026-10-30"
-        
+
         penalty = crit_count * 10.0 + (findings_count - crit_count) * 2.0
         score = max(0.0, round(100.0 - penalty, 1))
 

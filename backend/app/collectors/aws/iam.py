@@ -74,8 +74,7 @@ class IAMCollector(BaseCollector):
                     try:
                         pol_res = iam.list_attached_user_policies(UserName=username)
                         user_data["attached_policies"] = [
-                            p.get("PolicyArn", "")
-                            for p in pol_res.get("AttachedPolicies", [])
+                            p.get("PolicyArn", "") for p in pol_res.get("AttachedPolicies", [])
                         ]
                     except (ClientError, BotoCoreError) as exc:
                         logger.debug("Failed listing attached policies for %s: %s", username, exc)
@@ -133,11 +132,12 @@ class IAMCollector(BaseCollector):
                     try:
                         att_res = iam.list_attached_role_policies(RoleName=role_name)
                         role_data["attached_policies"] = [
-                            p.get("PolicyArn", "")
-                            for p in att_res.get("AttachedPolicies", [])
+                            p.get("PolicyArn", "") for p in att_res.get("AttachedPolicies", [])
                         ]
                     except (ClientError, BotoCoreError) as exc:
-                        logger.debug("Failed listing attached policies for role %s: %s", role_name, exc)
+                        logger.debug(
+                            "Failed listing attached policies for role %s: %s", role_name, exc
+                        )
 
                     roles.append(role_data)
         except Exception as exc:
@@ -158,9 +158,7 @@ class IAMCollector(BaseCollector):
                     document = {}
                     if version_id:
                         try:
-                            v_res = iam.get_policy_version(
-                                PolicyArn=pol_arn, VersionId=version_id
-                            )
+                            v_res = iam.get_policy_version(PolicyArn=pol_arn, VersionId=version_id)
                             document = v_res.get("PolicyVersion", {}).get("Document", {})
                         except Exception:
                             pass

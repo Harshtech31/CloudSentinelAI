@@ -10,7 +10,6 @@ Demonstrates:
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add backend to path
@@ -24,8 +23,8 @@ from app.ai.explain import explain_finding
 from app.collectors.registration import register_default_collectors
 from app.core.constants import CloudProvider, ReportFormat, ScanStatus
 from app.database.base import Base
-from app.database.models import Finding, Scan, User
-from app.database.repositories import FindingRepository, ReportRepository, ScanRepository
+from app.database.models import Scan, User
+from app.database.repositories import FindingRepository, ScanRepository
 from app.reports import ScanReportData, render_report
 from app.services.graph_service import graph_store
 from app.tasks.scan_task import run_scan_task
@@ -84,15 +83,17 @@ def run_demo():
     findings, total = finding_repo.list_paginated(scan_id=scan.id, page=1, limit=100)
     print(f"\n[Step 3] Findings Breakdown (Total: {total}):")
     for idx, f in enumerate(findings[:5], start=1):
-        print(f"   {idx}. [{f.severity.value.upper()}] {f.rule_id}: {f.title} (Resource: {f.resource_id})")
+        print(
+            f"   {idx}. [{f.severity.value.upper()}] {f.rule_id}: {f.title} (Resource: {f.resource_id})"
+        )
     if total > 5:
         print(f"   ... and {total - 5} more findings")
 
     # 4. Inspect Knowledge Graph & Attack Chains
-    graph_resp = graph_store.get_graph(scan.id)
+    _ = graph_store.get_graph(scan.id)
     stats_resp = graph_store.get_stats(scan.id)
     chains_resp = graph_store.get_attack_chains(scan.id)
-    print(f"\n[Step 4] Knowledge Graph & Attack Engine:")
+    print("\n[Step 4] Knowledge Graph & Attack Engine:")
     print(f"   - Nodes: {stats_resp.total_nodes}")
     print(f"   - Relationship Edges: {stats_resp.total_edges}")
     print(f"   - Discovered Attack Chains: {chains_resp.total_chains}")
@@ -102,7 +103,7 @@ def run_demo():
         print(f"     Trajectory: {' -> '.join(c.path)}")
 
     # 5. Test Multi-Format Report Generation
-    print(f"\n[Step 5] Generating Multi-Format Security Assessment Reports...")
+    print("\n[Step 5] Generating Multi-Format Security Assessment Reports...")
     report_data = ScanReportData(
         scan_id=scan.id,
         account_id="250675044619",
@@ -131,7 +132,7 @@ def run_demo():
     # 6. Test Bedrock AI Explanation for top finding
     if findings:
         top_f = findings[0]
-        print(f"\n[Step 6] Invoking Amazon Bedrock Claude Haiku for Finding Explanation...")
+        print("\n[Step 6] Invoking Amazon Bedrock Claude Haiku for Finding Explanation...")
         print(f"   Target: {top_f.title} ({top_f.rule_id})")
         fact_dict = {
             "title": top_f.title,

@@ -29,12 +29,12 @@ from sqlalchemy.orm import Session
 
 from app.analyzers import RawFinding
 from app.analyzers.misconfigurations import MisconfigurationOrchestrator
+from app.collectors.aws import clear_scan_credentials, set_scan_credentials
 from app.collectors.base import BaseCollector, CollectorError, CredentialsError
 from app.core.constants import ScanStatus
 from app.core.logging import logger
-from app.database.models import Scan
+from app.database.models import Scan, UserIntegration
 from app.database.repositories import FindingRepository, ScanRepository
-from app.graph import GraphBuilder
 from app.graph.models import NodeType
 
 # Collector registry — service name (as listed in ScanStartRequest.services)
@@ -135,7 +135,9 @@ def _graph_stage(
     if scan_id:
         graph_store.save_scan_graph(scan_id, builder, attack_chains)
     node_count = len(builder.nodes)
-    logger.info("Knowledge graph built: %d node(s), %d attack chain(s)", node_count, len(attack_chains))
+    logger.info(
+        "Knowledge graph built: %d node(s), %d attack chain(s)", node_count, len(attack_chains)
+    )
     return node_count
 
 
@@ -177,6 +179,23 @@ def run_scan_task(
             return
 
         services = [s for s in (scan.services or "").split(",") if s]
+
+        # Bind user's configured AWS credentials if present
+        if scan.user_id:
+            integration = db.query(UserIntegration).filter_by(user_id=scan.user_id).one_or_none()
+            if integration and integration.aws_access_key_id:
+                logger.info(
+                    "Scan %s using user credentials for account %s (region %s)",
+                    scan_id,
+                    integration.aws_account_id,
+                    integration.aws_default_region,
+                )
+                set_scan_credentials(
+                    access_key=integration.aws_access_key_id,
+                    secret_key=integration.aws_secret_access_key,
+                    session_token=integration.aws_session_token,
+                    region=integration.aws_default_region,
+                )
 
         try:
             # Pre-flight cancel check: never resurrect a CANCELLED scan by
@@ -237,6 +256,7 @@ def run_scan_task(
             if fresh is not None:
                 repos.mark_failed(fresh, f"Internal error: {exc}")
     finally:
+        clear_scan_credentials()
         db.close()
 
 

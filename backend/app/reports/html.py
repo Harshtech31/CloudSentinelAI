@@ -5,10 +5,8 @@ Produces a standalone executive security audit report complete with CSS styling,
 risk meters, finding breakdown, and AI remediation guidance.
 """
 
-from typing import Any
-
 from app.core.constants import ReportFormat
-from app.reports import BaseRenderer, ScanReportData
+from app.reports.base import BaseRenderer, ScanReportData
 
 
 class HTMLRenderer(BaseRenderer):
@@ -29,7 +27,12 @@ class HTMLRenderer(BaseRenderer):
                 "INFO": "badge-info",
             }.get(sev, "badge-info")
 
-            remediation = f.get("remediation", f.get("remediation_guidance", "Review resource against AWS security best practices."))
+            remediation = f.get(
+                "remediation",
+                f.get(
+                    "remediation_guidance", "Review resource against AWS security best practices."
+                ),
+            )
             finding_rows.append(
                 f"""
                 <tr class="finding-row">
@@ -46,17 +49,29 @@ class HTMLRenderer(BaseRenderer):
                 """
             )
 
-        findings_html = "".join(finding_rows) if finding_rows else "<tr><td colspan='5' class='text-center'>No active findings detected. Cloud posture is compliant!</td></tr>"
+        findings_html = (
+            "".join(finding_rows)
+            if finding_rows
+            else "<tr><td colspan='5' class='text-center'>No active findings detected. Cloud posture is compliant!</td></tr>"
+        )
 
         remed_items = []
         for rec in data.recommendations:
             if isinstance(rec, str):
                 remed_items.append(f"<li>{rec}</li>")
             elif isinstance(rec, dict):
-                remed_items.append(f"<li><strong>{rec.get('title', 'Action')}:</strong> {rec.get('action', '')}</li>")
-        remediations_html = "".join(remed_items) if remed_items else "<li>Maintain automated periodic CSPM scans and enforce least-privilege IAM roles.</li>"
+                remed_items.append(
+                    f"<li><strong>{rec.get('title', 'Action')}:</strong> {rec.get('action', '')}</li>"
+                )
+        remediations_html = (
+            "".join(remed_items)
+            if remed_items
+            else "<li>Maintain automated periodic CSPM scans and enforce least-privilege IAM roles.</li>"
+        )
 
-        crit_count = sum(1 for f in data.findings if str(f.get("severity", "")).upper() == "CRITICAL")
+        crit_count = sum(
+            1 for f in data.findings if str(f.get("severity", "")).upper() == "CRITICAL"
+        )
         high_count = sum(1 for f in data.findings if str(f.get("severity", "")).upper() == "HIGH")
         med_count = sum(1 for f in data.findings if str(f.get("severity", "")).upper() == "MEDIUM")
         low_count = sum(1 for f in data.findings if str(f.get("severity", "")).upper() == "LOW")
@@ -102,7 +117,7 @@ class HTMLRenderer(BaseRenderer):
         .brand {{ font-size: 1.75rem; font-weight: 800; color: var(--accent-blue); letter-spacing: -0.5px; }}
         .brand span {{ color: var(--text-primary); }}
         .meta-tag {{ font-size: 0.875rem; color: var(--text-muted); }}
-        
+
         /* Summary Grid */
         .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }}
         .card {{ background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem; }}
@@ -155,7 +170,7 @@ class HTMLRenderer(BaseRenderer):
             </div>
             <div style="text-align: right;">
                 <div><strong>Scan ID:</strong> <code>{data.scan_id}</code></div>
-                <div class="meta-tag">Generated: {data.generated_at or 'Just now'} | Cloud: {str(data.provider).upper()}</div>
+                <div class="meta-tag">Generated: {data.generated_at or "Just now"} | Cloud: {str(data.provider).upper()}</div>
             </div>
         </header>
 

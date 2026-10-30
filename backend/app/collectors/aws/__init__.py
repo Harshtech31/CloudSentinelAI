@@ -10,6 +10,7 @@ Credentials policy: collection may only use AWS profiles named
 `_resolve_profile` rejects anything else by design.
 """
 
+from contextvars import ContextVar
 from typing import Any
 
 import boto3
@@ -19,16 +20,36 @@ from botocore.exceptions import ProfileNotFound
 from app.core.config import settings
 from app.core.logging import logger
 
+_SCAN_CREDENTIALS: ContextVar[dict[str, Any] | None] = ContextVar("scan_credentials", default=None)
+
+
+def set_scan_credentials(
+    access_key: str | None = None,
+    secret_key: str | None = None,
+    session_token: str | None = None,
+    region: str | None = None,
+) -> None:
+    """Set explicit credentials for the current scan context (thread/task-safe)."""
+    if access_key and secret_key:
+        _SCAN_CREDENTIALS.set(
+            {
+                "access_key": access_key,
+                "secret_key": secret_key,
+                "session_token": session_token,
+                "region": region,
+            }
+        )
+    else:
+        _SCAN_CREDENTIALS.set(None)
+
+
+def clear_scan_credentials() -> None:
+    """Clear context-scoped scan credentials."""
+    _SCAN_CREDENTIALS.set(None)
+
 
 def _resolve_profile() -> str | None:
-    """Resolve the AWS CLI profile for collection, with an allowlist.
-
-    Only profiles named `cloudsentinel-*` are permitted. Anything else —
-    default, cost-audit, cleanup-admins — is rejected outright so a
-    misconfigured .env can never point CloudSentinel at an account it
-    does not own. Explicit key overrides bypass the guard (they are
-    deliberate per-scan credentials, e.g. ephemeral scenario roles).
-    """
+    """Resolve the AWS CLI profile for collection, with an allowlist."""
     profile = settings.AWS_PROFILE.strip() or None
     if profile is None:
         return None
@@ -46,23 +67,16 @@ def get_aws_session(
     session_token: str | None = None,
     region: str | None = None,
 ) -> Any:
-    """Build a boto3 session from the cloudsentinel-* profile or explicit keys.
+    """Build a boto3 session from context credentials, cloudsentinel-* profile, or explicit keys."""
+    # Check context credentials if explicit parameters are omitted
+    if not (access_key or secret_key):
+        ctx = _SCAN_CREDENTIALS.get()
+        if ctx:
+            access_key = ctx.get("access_key")
+            secret_key = ctx.get("secret_key")
+            session_token = ctx.get("session_token")
+            region = region or ctx.get("region")
 
-    Resolution order:
-      1. Explicit access_key/secret_key overrides (per-scan credentials).
-      2. The `cloudsentinel-*` CLI profile from settings.AWS_PROFILE —
-         non-cloudsentinel profiles raise ValueError (guard above).
-      3. boto3's default chain (env vars) when no profile is configured.
-
-    Args:
-        access_key: Optional explicit access key (per-scan override).
-        secret_key: Optional explicit secret key (per-scan override).
-        session_token: Optional STS session token (per-scan override).
-        region: Optional region override; defaults to settings.AWS_DEFAULT_REGION.
-
-    Returns:
-        A boto3 Session bound to the resolved credentials/region.
-    """
     using_explicit_keys = bool(access_key or secret_key)
     profile = None if using_explicit_keys else _resolve_profile()
 

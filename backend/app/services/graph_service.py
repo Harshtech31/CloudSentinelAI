@@ -6,8 +6,8 @@ discovers multi-hop attack trajectories (e.g. Internet → EC2 → Role → S3),
 computes CVSS-inspired risk scores for Cytoscape.js visualization.
 """
 
-from typing import Any
 import uuid
+from typing import Any
 
 from app.analyzers import RawFinding
 from app.attack_engine.attack_graph import AttackEdge, AttackGraph, AttackNode
@@ -101,7 +101,9 @@ def build_security_graph(
     # 4. Add Security Groups
     for sg in resources.get("security_groups", []):
         sg_id = sg.get("id", "sg-unknown")
-        has_open_ingress = sg.get("has_open_ssh") or sg.get("has_open_rdp") or sg.get("allows_all_traffic")
+        has_open_ingress = (
+            sg.get("has_open_ssh") or sg.get("has_open_rdp") or sg.get("allows_all_traffic")
+        )
         builder.add_node(
             sg_id,
             label=sg.get("name", sg_id),
@@ -309,7 +311,10 @@ def build_security_graph(
             node_type=NodeType.RDS_INSTANCE,
             arn=arn,
             region=rds.get("region", "global"),
-            properties={"publicly_accessible": is_pub, "storage_encrypted": rds.get("storage_encrypted", False)},
+            properties={
+                "publicly_accessible": is_pub,
+                "storage_encrypted": rds.get("storage_encrypted", False),
+            },
         )
         db_risk = finding_risks.get(db_id, 9.5 if is_pub else 6.0)
         attack_graph.add_node(
@@ -389,7 +394,12 @@ def build_security_graph(
 
     # Sort attack chains by risk score descending
     ranked_chains.sort(key=lambda c: c["risk_score"], reverse=True)
-    logger.info("Security graph built: %d nodes, %d edges, %d attack chain(s)", len(builder.nodes), len(builder.edges), len(ranked_chains))
+    logger.info(
+        "Security graph built: %d nodes, %d edges, %d attack chain(s)",
+        len(builder.nodes),
+        len(builder.edges),
+        len(ranked_chains),
+    )
     return builder, attack_graph, ranked_chains
 
 

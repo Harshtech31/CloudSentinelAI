@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { loginRequest } from '../api/auth';
+import { loginRequest, registerRequest } from '../api/auth';
 import { useAuthStore } from '../store/authStore';
 
 interface AuthContextValue {
@@ -8,6 +8,7 @@ interface AuthContextValue {
   isLoading: boolean;
   error: string | null;
   login: (username: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, fullName: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -49,6 +50,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (err) {
           setError(
             axiosErrorMessage(err, 'Could not sign in. Check your credentials and try again.'),
+          );
+          return false;
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      async register(email, password, fullName) {
+        setIsLoading(true);
+        setError(null);
+        try {
+          await registerRequest({ email, password, full_name: fullName, role: 'analyst' });
+          const tokens = await loginRequest(email, password);
+          setTokens(tokens.access_token, tokens.refresh_token);
+          return true;
+        } catch (err) {
+          setError(
+            axiosErrorMessage(err, 'Could not create account. Email may already exist.'),
           );
           return false;
         } finally {

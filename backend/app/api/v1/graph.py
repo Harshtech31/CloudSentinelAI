@@ -25,7 +25,9 @@ router = APIRouter(prefix="/graph", tags=["Graph"])
     description="Fetch full multi-cloud topology graph formatted as Cytoscape.js nodes and edges.",
 )
 async def get_graph(
-    scan_id: str | None = Query(None, description="Optional scan ID to retrieve graph for specific run"),
+    scan_id: str | None = Query(
+        None, description="Optional scan ID to retrieve graph for specific run"
+    ),
 ) -> GraphResponse:
     """Fetch security knowledge graph in Cytoscape.js format."""
     return graph_store.get_graph(scan_id=scan_id)

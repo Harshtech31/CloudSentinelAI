@@ -7,7 +7,6 @@ demo verification, and comparative security posture evaluation.
 
 import json
 from pathlib import Path
-from typing import Any
 
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field
@@ -18,9 +17,19 @@ CATALOG_PATH = Path("evaluation-scenarios/catalog.json")
 
 
 class ScenarioItem(BaseModel):
-    id: str = Field(..., description="Scenario identifier (e.g. S1, S2)", json_schema_extra={"example": "S1"})
-    name: str = Field(..., description="Scenario descriptive title", json_schema_extra={"example": "Public S3 storage exposure"})
-    status: str = Field(..., description="Execution and evaluation status", json_schema_extra={"example": "executed_and_restored"})
+    id: str = Field(
+        ..., description="Scenario identifier (e.g. S1, S2)", json_schema_extra={"example": "S1"}
+    )
+    name: str = Field(
+        ...,
+        description="Scenario descriptive title",
+        json_schema_extra={"example": "Public S3 storage exposure"},
+    )
+    status: str = Field(
+        ...,
+        description="Execution and evaluation status",
+        json_schema_extra={"example": "executed_and_restored"},
+    )
     focus: list[str] = Field(default_factory=list, description="Core evaluation objectives")
     deployment_boundary: str | None = Field(None, description="Scope and isolation boundary")
     execution_note: str | None = Field(None, description="Detailed runtime evidence note")
@@ -30,7 +39,9 @@ class ScenariosCatalogResponse(BaseModel):
     schema_version: str = Field("1.0", description="Catalog schema version")
     purpose: str = Field(..., description="Evaluation framework purpose statement")
     safety_requirements: list[str] = Field(default_factory=list, description="Safeguard criteria")
-    scenarios: list[ScenarioItem] = Field(default_factory=list, description="Cataloged test scenarios")
+    scenarios: list[ScenarioItem] = Field(
+        default_factory=list, description="Cataloged test scenarios"
+    )
 
 
 @router.get(
@@ -43,7 +54,7 @@ class ScenariosCatalogResponse(BaseModel):
 async def list_evaluation_scenarios() -> ScenariosCatalogResponse:
     """Load and return evaluation scenarios from catalog.json."""
     if CATALOG_PATH.exists():
-        with open(CATALOG_PATH, "r", encoding="utf-8") as f:
+        with open(CATALOG_PATH, encoding="utf-8") as f:
             data = json.load(f)
         return ScenariosCatalogResponse(**data)
 

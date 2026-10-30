@@ -15,7 +15,6 @@ from app.ai import (
     Explanation,
     ExplanationRequest,
 )
-from app.ai.prompts import render_prompt
 from app.core.logging import logger
 
 _FALLBACK_FINDING = (
@@ -44,7 +43,17 @@ def get_default_providers() -> list[BaseAIProvider]:
     except Exception as exc:
         logger.debug("BedrockProvider initialization skipped: %s", exc)
 
-    # 2. OpenAI
+    # 2. Anthropic (Direct)
+    try:
+        from app.ai.providers.anthropic import AnthropicProvider
+
+        anthropic_p = AnthropicProvider()
+        if anthropic_p.is_available():
+            active.append(anthropic_p)
+    except Exception as exc:
+        logger.debug("AnthropicProvider initialization skipped: %s", exc)
+
+    # 3. OpenAI
     try:
         from app.ai.providers.openai import OpenAIProvider
 
@@ -54,7 +63,7 @@ def get_default_providers() -> list[BaseAIProvider]:
     except Exception as exc:
         logger.debug("OpenAIProvider initialization skipped: %s", exc)
 
-    # 3. Ollama (local)
+    # 4. Ollama (local)
     try:
         from app.ai.providers.ollama import OllamaProvider
 
@@ -65,6 +74,47 @@ def get_default_providers() -> list[BaseAIProvider]:
         logger.debug("OllamaProvider initialization skipped: %s", exc)
 
     return active
+
+
+def get_user_providers(integration: Any) -> list[BaseAIProvider]:
+    """Build providers based on user's active integration preference."""
+    if not integration:
+        return get_default_providers()
+
+    choice = getattr(integration, "ai_provider", "bedrock").lower()
+    providers: list[BaseAIProvider] = []
+
+    if choice == "openai" and getattr(integration, "openai_api_key", None):
+        from app.ai.providers.openai import OpenAIProvider
+
+        p = OpenAIProvider(
+            api_key=integration.openai_api_key,
+            model=getattr(integration, "openai_model", "gpt-4o-mini"),
+        )
+        if p.is_available():
+            providers.append(p)
+    elif choice == "anthropic" and getattr(integration, "anthropic_api_key", None):
+        from app.ai.providers.anthropic import AnthropicProvider
+
+        p = AnthropicProvider(
+            api_key=integration.anthropic_api_key,
+            model=getattr(integration, "anthropic_model", "claude-3-5-sonnet-20241022"),
+        )
+        if p.is_available():
+            providers.append(p)
+    elif choice == "bedrock":
+        from app.ai.providers.bedrock import BedrockProvider
+
+        p = BedrockProvider()
+        if p.is_available():
+            providers.append(p)
+
+    # Append fallback default providers
+    for default_p in get_default_providers():
+        if default_p.name != choice:
+            providers.append(default_p)
+
+    return providers or get_default_providers()
 
 
 def explain_finding(

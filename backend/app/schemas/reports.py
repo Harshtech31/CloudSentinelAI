@@ -12,8 +12,10 @@ from app.core.constants import ReportFormat
 class ReportGenerateRequest(BaseModel):
     """Payload to trigger security report compilation."""
 
-    scan_id: str = Field(
-        ..., description="Target scan ID to generate report for", example="scn_83f12a9c"
+    scan_id: str | None = Field(
+        None,
+        description="Target scan ID to generate report for (defaults to latest scan)",
+        example="scn_83f12a9c",
     )
     format: ReportFormat = Field(
         ReportFormat.PDF, description="Export format (pdf, html, json, csv)"

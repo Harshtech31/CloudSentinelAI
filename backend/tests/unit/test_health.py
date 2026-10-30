@@ -64,4 +64,3 @@ def test_eval_scenarios_endpoint(client: TestClient):
     scenario_ids = [s["id"] for s in data["scenarios"]]
     assert "S1" in scenario_ids
     assert "S2" in scenario_ids
-

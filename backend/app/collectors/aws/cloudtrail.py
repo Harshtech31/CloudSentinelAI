@@ -33,9 +33,7 @@ class CloudTrailCollector(BaseCollector):
                 res = ct.describe_trails(includeShadowTrails=False)
                 for trail in res.get("trailList", []):
                     name = trail["Name"]
-                    arn = trail.get(
-                        "TrailARN", f"arn:aws:cloudtrail:{region}:::trail/{name}"
-                    )
+                    arn = trail.get("TrailARN", f"arn:aws:cloudtrail:{region}:::trail/{name}")
                     is_multi_region = trail.get("IsMultiRegionTrail", False)
                     log_validation = trail.get("LogFileValidationEnabled", False)
                     s3_bucket = trail.get("S3BucketName")

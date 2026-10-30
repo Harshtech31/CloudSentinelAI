@@ -2,8 +2,8 @@
 Unit tests for Graph Engine, Cytoscape serialization, and Graph REST endpoints.
 """
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from app.main import app
 from app.services.graph_service import build_security_graph, graph_store

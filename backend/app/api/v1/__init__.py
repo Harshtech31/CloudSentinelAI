@@ -4,12 +4,13 @@ API v1 Package: aggregates all endpoint routers.
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, dashboard, eval, findings, graph, health, reports, scan
+from app.api.v1 import auth, dashboard, eval, findings, graph, health, onboarding, reports, scan
 
 api_router = APIRouter()
 
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
+api_router.include_router(onboarding.router)
 api_router.include_router(scan.router)
 api_router.include_router(findings.router)
 api_router.include_router(graph.router)

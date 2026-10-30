@@ -40,7 +40,9 @@ class FindingResponse(BaseModel):
         example="Enable hardware or virtual MFA for the AWS root account.",
     )
     ai_explanation: str | None = Field(
-        None, description="AI-generated contextual explanation from Bedrock", example="This finding exposes..."
+        None,
+        description="AI-generated contextual explanation from Bedrock",
+        example="This finding exposes...",
     )
     status: str = Field("open", description="Finding lifecycle status", example="open")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Detection timestamp")
@@ -82,7 +84,9 @@ class FindingExplainResponse(BaseModel):
 
     finding_id: str = Field(..., description="Finding ID", example="fnd_123")
     explanation: str = Field(..., description="Contextual analysis and attack implications")
-    remediation_steps: list[str] = Field(default_factory=list, description="Ordered step-by-step mitigation actions")
+    remediation_steps: list[str] = Field(
+        default_factory=list, description="Ordered step-by-step mitigation actions"
+    )
     provider: str = Field("bedrock", description="AI provider used", example="bedrock")
     model: str = Field("us.anthropic.claude-haiku-4-5-20251001-v1:0", description="LLM model ID")
     tokens_used: int = Field(0, description="Total prompt and completion tokens")
@@ -102,11 +106,18 @@ class ComplianceReportResponse(BaseModel):
     """Overall compliance assessment report."""
 
     framework: str = Field("CIS AWS Benchmark v1.5", description="Framework evaluated")
-    compliance_score: float = Field(..., description="Overall compliance pass percentage (0-100%)", example=85.0)
+    compliance_score: float = Field(
+        ..., description="Overall compliance pass percentage (0-100%)", example=85.0
+    )
+    compliance_percentage: float | None = Field(
+        None, description="Alias for compliance_score", example=85.0
+    )
     total_controls: int = Field(..., description="Total controls evaluated", example=20)
     passed_controls: int = Field(..., description="Passed controls count", example=17)
     failed_controls: int = Field(..., description="Failed controls count", example=3)
-    controls: list[ComplianceControlStatus] = Field(default_factory=list, description="Control status breakdown")
+    controls: list[ComplianceControlStatus] = Field(
+        default_factory=list, description="Control status breakdown"
+    )
 
 
 __all__ = [

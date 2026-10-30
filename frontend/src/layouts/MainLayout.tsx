@@ -1,22 +1,21 @@
 import { Outlet } from 'react-router-dom';
-
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
+import { SlideDrawer } from '../components/SlideDrawer';
+import { Toast } from '../components/Toast';
 
-/**
- * App shell (roadmap task 19): sidebar, top bar, routed content.
- * Page content renders through the Outlet.
- */
 export function MainLayout() {
   return (
-    <div className="shell">
+    <div className="app-container">
       <Sidebar />
-      <div className="shell-main">
+      <div className="main-area">
         <Navbar />
-        <main className="content">
+        <main className="content-body">
           <Outlet />
         </main>
       </div>
+      <SlideDrawer />
+      <Toast />
     </div>
   );
 }

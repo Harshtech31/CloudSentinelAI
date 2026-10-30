@@ -13,3 +13,26 @@ export async function loginRequest(username: string, password: string): Promise<
   const { data } = await api.post<TokenPair>('/auth/login', { username, password });
   return data;
 }
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  full_name: string;
+  role?: 'admin' | 'analyst' | 'viewer';
+}
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+/** POST /auth/register — creates new user account. */
+export async function registerRequest(payload: RegisterPayload): Promise<UserResponse> {
+  const { data } = await api.post<UserResponse>('/auth/register', payload);
+  return data;
+}
+
