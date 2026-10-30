@@ -60,6 +60,28 @@ class ReportRepository:
         ).all()
         return list(rows), int(total or 0)
 
+    def list_for_user(
+        self, user_id: str, *, page: int = 1, limit: int = 50
+    ) -> tuple[list[Report], int]:
+        """Paginated reports generated for all scans belonging to user."""
+        from app.database.models import Scan
+
+        total = self.db.scalar(
+            select(func.count())
+            .select_from(Report)
+            .join(Scan, Report.scan_id == Scan.id)
+            .where(Scan.user_id == user_id)
+        )
+        rows = self.db.scalars(
+            select(Report)
+            .join(Scan, Report.scan_id == Scan.id)
+            .where(Scan.user_id == user_id)
+            .order_by(Report.created_at.desc(), Report.id.desc())
+            .offset((page - 1) * limit)
+            .limit(limit)
+        ).all()
+        return list(rows), int(total or 0)
+
     def delete(self, report: Report) -> None:
         """Remove a report row and commit (file on disk is unchanged)."""
         self.db.delete(report)

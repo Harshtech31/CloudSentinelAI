@@ -95,38 +95,10 @@ class CSVRenderer(BaseRenderer):
         return buffer.getvalue().encode("utf-8")
 
 
-# --- HTML renderer (stub; Phase 3 implements the styled report) --------------
-class HTMLRenderer(BaseRenderer):
-    """HTML export stub: valid minimal document, no styling yet."""
-
-    fmt = ReportFormat.HTML
-
-    def render(self, data: ScanReportData) -> bytes:
-        rows = "".join(
-            f"<tr><td>{f.get('rule_id', '')}</td><td>{f.get('severity', '')}</td>"
-            f"<td>{f.get('title', '')}</td></tr>"
-            for f in data.findings
-        )
-        html = (
-            "<!DOCTYPE html><html><head><meta charset='utf-8'>"
-            f"<title>CloudSentinel Report {data.scan_id}</title></head><body>"
-            f"<h1>Scan {data.scan_id}</h1>"
-            f"<p>Account {data.account_id} &middot; risk {data.risk_score}/10</p>"
-            f"<table><tr><th>Rule</th><th>Severity</th><th>Title</th></tr>{rows}</table>"
-            "</body></html>"
-        )
-        return html.encode("utf-8")
-
-
-# --- PDF renderer (stub; Phase 3 implements via reportlab/weasyprint) --------
-class PDFRenderer(BaseRenderer):
-    """PDF export stub: raises until Phase 3 wires a PDF library."""
-
-    fmt = ReportFormat.PDF
-
-    def render(self, data: ScanReportData) -> bytes:
-        raise NotImplementedError("PDF export lands in Phase 3; use JSON, CSV, or HTML for now")
-
+from app.reports.csv import CSVRenderer
+from app.reports.html import HTMLRenderer
+from app.reports.json import JSONRenderer
+from app.reports.pdf import PDFRenderer
 
 _RENDERERS: dict[ReportFormat, type[BaseRenderer]] = {
     ReportFormat.JSON: JSONRenderer,
